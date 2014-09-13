@@ -5,7 +5,7 @@ function Trash(game) {
 
 Trash.prototype = {
   preload: function() {
-    this.game.load.image('trash', 'assets/ball.png');
+    this.game.load.image('trash', 'assets/trash/hamburger.png');
   },
 
   create: function() {
