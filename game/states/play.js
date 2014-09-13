@@ -1,9 +1,9 @@
+  var BlackHole = require('../objects/black-hole.js');
 
   'use strict';
   function Play() {}
   Play.prototype = {
     create: function() {
-      require('./objects/black-hole.js');
       this.game.physics.startSystem(Phaser.Physics.ARCADE);
       this.timer = this.game.time.create(true);
       this.timer.start();
@@ -25,7 +25,7 @@
       ball.body.velocity.x = Math.floor((Math.random() * 50) + 1);
       ball.body.velocity.y = Math.floor((Math.random() * 50) + 1);
       if (this.blackhole) {
-        ball.body.gravity = new Phaser.Point(this.blackhole.x - ball.body.x, this.blackhole.body.y - ball.body.y);
+        ball.body.gravity = new Phaser.Point(this.blackhole.x - ball.body.x, this.blackhole.sprite.body.y - ball.body.y);
       }
       //ball.body.gravity = ball.body.gravity.normalize().multiply(100, 100);
     },

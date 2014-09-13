@@ -15,7 +15,33 @@ window.onload = function () {
 
   game.state.start('boot');
 };
-},{"./states/boot":2,"./states/gameover":3,"./states/menu":4,"./states/play":5,"./states/preload":6}],2:[function(require,module,exports){
+},{"./states/boot":3,"./states/gameover":4,"./states/menu":5,"./states/play":6,"./states/preload":7}],2:[function(require,module,exports){
+function BlackHole(game) {
+  this.game = game;
+  this.sprite = null;
+}
+
+BlackHole.prototype = {
+  preload: function() {
+    this.game.load.spritesheet('blackhole', 'assets/blackhole.png', 64, 64, 4);
+  },
+
+  create: function() {
+    this.sprite = this.game.add.sprite(this.game.input.activePointer.worldX-32, this.game.input.activePointer.worldY-32, 'blackhole');
+    this.sprite.animations.add('pulse');
+    this.sprite.animations.play('pulse', 2, true);
+
+    this.game.physics.arcade.enable(this.sprite);
+  },
+
+  update: function() {
+
+  },
+};
+
+module.exports = BlackHole;
+
+},{}],3:[function(require,module,exports){
 
 'use strict';
 
@@ -34,7 +60,7 @@ Boot.prototype = {
 
 module.exports = Boot;
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 
 'use strict';
 function GameOver() {}
@@ -62,7 +88,7 @@ GameOver.prototype = {
 };
 module.exports = GameOver;
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 
 'use strict';
 function Menu() {}
@@ -94,7 +120,8 @@ Menu.prototype = {
 
 module.exports = Menu;
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
+  var BlackHole = require('../objects/black-hole.js');
 
   'use strict';
   function Play() {}
@@ -120,24 +147,21 @@ module.exports = Menu;
       this.game.physics.arcade.enable(ball);
       ball.body.velocity.x = Math.floor((Math.random() * 50) + 1);
       ball.body.velocity.y = Math.floor((Math.random() * 50) + 1);
-      if (this.blackHole) {
-        ball.body.gravity = new Phaser.Point(this.blackHole.x - ball.body.x, this.blackHole.body.y - ball.body.y);
+      if (this.blackhole) {
+        ball.body.gravity = new Phaser.Point(this.blackhole.x - ball.body.x, this.blackhole.sprite.body.y - ball.body.y);
       }
       //ball.body.gravity = ball.body.gravity.normalize().multiply(100, 100);
     },
 
     createBlackHole: function() {
-      this.blackHole = this.game.add.sprite(this.game.input.activePointer.worldX-32, this.game.input.activePointer.worldY-32, 'blackhole');
-      this.blackHole.animations.add('pulse');
-      this.blackHole.animations.play('pulse', 2, true);
-
-      this.game.physics.arcade.enable(this.blackHole);
+      this.blackhole = new BlackHole(this.game);
+      this.blackhole.create();
     }
   };
 
   module.exports = Play;
 
-},{}],6:[function(require,module,exports){
+},{"../objects/black-hole.js":2}],7:[function(require,module,exports){
 
 'use strict';
 function Preload() {
