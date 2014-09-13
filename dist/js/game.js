@@ -182,18 +182,18 @@ module.exports = Menu;
     createTrash: function() {
       var trash = new Trash(this.game).create();
       this.trash.add(trash);
-      if (this.blackhole) {
-        trash.body.gravity = new Phaser.Point(this.blackhole.body.x - trash.body.x, this.blackhole.body.y - trash.body.y);
-      }
     },
 
     moveTrash: function(trash) {
-      this.accelerateToBlackHole(trash, 30);
+      if (typeof this.blackhole !== 'undefined') {
+        this.accelerateToBlackHole(trash, 30);
+      }
     },
 
     accelerateToBlackHole: function(trash, speed) {
       if (typeof speed === 'undefined') { speed = 60; }
       var angle = Math.atan2(this.blackhole.y - trash.y, this.blackhole.x - trash.x);
+      
       trash.body.rotation = angle + this.game.math.degToRad(90);  // correct angle of angry bullets (depends on the sprite used)
       trash.body.force.x = Math.cos(angle) * speed;    // accelerateToObject
       trash.body.force.y = Math.sin(angle) * speed;
