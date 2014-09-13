@@ -10,8 +10,9 @@ BlackHole.prototype = {
 
   create: function() {
     this.sprite = this.game.add.sprite(this.game.input.activePointer.worldX, this.game.input.activePointer.worldY, 'blackhole');
+    this.sprite.scale.setTo(2);
     this.sprite.animations.add('pulse');
-    this.sprite.animations.play('pulse', 2, true);
+    this.sprite.animations.play('pulse', 12, true);
 
     this.game.physics.p2.enable(this.sprite);
     this.sprite.body.static = true;
