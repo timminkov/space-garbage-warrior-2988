@@ -15,6 +15,7 @@ Trash.prototype = {
     var sprite = this.game.add.sprite(x, y, 'trash');
     this.game.physics.p2.enable(sprite);
     sprite.body.collideWorldBounds = true;
+
     return sprite;
   },
 

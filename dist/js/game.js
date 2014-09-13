@@ -27,12 +27,13 @@ BlackHole.prototype = {
   },
 
   create: function() {
-    this.sprite = this.game.add.sprite(this.game.input.activePointer.worldX-32, this.game.input.activePointer.worldY-32, 'blackhole');
+    this.sprite = this.game.add.sprite(this.game.input.activePointer.worldX, this.game.input.activePointer.worldY, 'blackhole');
     this.sprite.animations.add('pulse');
     this.sprite.animations.play('pulse', 2, true);
 
     this.game.physics.p2.enable(this.sprite);
     this.sprite.body.static = true;
+    this.sprite.body.setRectangle(1, 1, 0, 0, 0);
     return this.sprite;
   },
 
@@ -61,6 +62,7 @@ Trash.prototype = {
     var sprite = this.game.add.sprite(x, y, 'trash');
     this.game.physics.p2.enable(sprite);
     sprite.body.collideWorldBounds = true;
+
     return sprite;
   },
 
