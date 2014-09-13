@@ -3,6 +3,7 @@
   function Play() {}
   Play.prototype = {
     create: function() {
+      require('./objects/black-hole.js');
       this.game.physics.startSystem(Phaser.Physics.ARCADE);
       this.timer = this.game.time.create(true);
       this.timer.start();
@@ -21,16 +22,17 @@
 
       var ball = this.game.add.sprite(x, y, 'ball');
       this.game.physics.arcade.enable(ball);
-      ball.body.velocity.x = Math.floor((Math.random() * 10) + 1);
-      ball.body.velocity.y = Math.floor((Math.random() * 10) + 1);
+      ball.body.velocity.x = Math.floor((Math.random() * 50) + 1);
+      ball.body.velocity.y = Math.floor((Math.random() * 50) + 1);
+      if (this.blackhole) {
+        ball.body.gravity = new Phaser.Point(this.blackhole.x - ball.body.x, this.blackhole.body.y - ball.body.y);
+      }
+      //ball.body.gravity = ball.body.gravity.normalize().multiply(100, 100);
     },
 
     createBlackHole: function() {
-      this.blackHole = this.game.add.sprite(this.game.input.activePointer.worldX-32, this.game.input.activePointer.worldY-32, 'blackhole');
-      this.blackHole.animations.add('pulse');
-      this.blackHole.animations.play('pulse', 2, true);
-
-      this.game.physics.arcade.enable(this.blackHole);
+      this.blackhole = new BlackHole(this.game);
+      this.blackhole.create();
     }
   };
 

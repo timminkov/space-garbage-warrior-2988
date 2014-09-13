@@ -118,8 +118,12 @@ module.exports = Menu;
 
       var ball = this.game.add.sprite(x, y, 'ball');
       this.game.physics.arcade.enable(ball);
-      ball.body.velocity.x = Math.floor((Math.random() * 10) + 1);
-      ball.body.velocity.y = Math.floor((Math.random() * 10) + 1);
+      ball.body.velocity.x = Math.floor((Math.random() * 50) + 1);
+      ball.body.velocity.y = Math.floor((Math.random() * 50) + 1);
+      if (this.blackHole) {
+        ball.body.gravity = new Phaser.Point(this.blackHole.x - ball.body.x, this.blackHole.body.y - ball.body.y);
+      }
+      //ball.body.gravity = ball.body.gravity.normalize().multiply(100, 100);
     },
 
     createBlackHole: function() {
