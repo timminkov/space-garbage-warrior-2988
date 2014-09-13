@@ -12,9 +12,9 @@ Preload.prototype = {
 
     this.load.onLoadComplete.addOnce(this.onLoadComplete, this);
     this.load.setPreloadSprite(this.asset);
-    this.load.spritesheet('blackhole', 'assets/blackhole.png', 64, 64, 4);
 
-    this.load.image('ball', 'assets/ball.png');
+    this.load.spritesheet('blackhole', 'assets/blackhole.png', 64, 64, 4);
+    this.load.image('trash', 'assets/ball.png');
 
   },
   create: function() {
