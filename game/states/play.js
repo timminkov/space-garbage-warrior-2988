@@ -1,7 +1,6 @@
   var BlackHole = require('../objects/black-hole.js');
   var Trash = require('../objects/trash.js');
 
-
   'use strict';
   function Play() {}
   Play.prototype = {
@@ -22,6 +21,7 @@
     update: function() {
       this.starfield.tilePosition.x -= 1;
       this.trash.forEachAlive(this.moveTrash, this);
+      this.trash.forEachAlive(this.shrink, this);
     },
 
     createTrash: function() {
@@ -29,26 +29,22 @@
       this.trash.add(trash);
     },
 
-    moveTrash: function(trash) {
+    shrink: function(trash) {
       if (typeof this.blackhole !== 'undefined') {
-        this.accelerateToBlackHole(trash, 30);
+        trash.object.shrink(this.blackhole);
       }
     },
 
-    accelerateToBlackHole: function(trash, speed) {
-      if (typeof speed === 'undefined') { speed = 60; }
-      var angle = Math.atan2(this.blackhole.y - trash.y, this.blackhole.x - trash.x);
-      
-      trash.body.rotation = angle + this.game.math.degToRad(90);  // correct angle of angry bullets (depends on the sprite used)
-      trash.body.force.x = Math.cos(angle) * speed;    // accelerateToObject
-      trash.body.force.y = Math.sin(angle) * speed;
+    moveTrash: function(trash) {
+      if (typeof this.blackhole !== 'undefined') {
+        trash.object.accelerateTo(this.blackhole, 30);
+      }
     },
 
     createBlackHole: function() {
-      // Destroy any existing blackholes.
       if (typeof this.blackhole !== 'undefined') {
         this.blackhole.destroy();
-      } 
+      }
 
       this.blackhole = new BlackHole(this.game).create();
       this.blackholes.add(this.blackhole);
