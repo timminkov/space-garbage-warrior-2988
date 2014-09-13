@@ -31,7 +31,9 @@ BlackHole.prototype = {
     this.sprite.animations.add('pulse');
     this.sprite.animations.play('pulse', 2, true);
 
-    this.game.physics.arcade.enable(this.sprite);
+    this.game.physics.p2.enable(this.sprite);
+    this.sprite.body.static = true;
+    return this.sprite;
   },
 
   update: function() {
@@ -56,11 +58,10 @@ Trash.prototype = {
     var x = Math.floor((Math.random() * 600) + 1)
     var y = Math.floor((Math.random() * 800) + 1)
 
-    var trash = this.game.add.sprite(x, y, 'trash');
-    this.game.physics.arcade.enable(trash);
-    trash.body.velocity.x = Math.floor((Math.random() * 50) + 1);
-    trash.body.velocity.y = Math.floor((Math.random() * 50) + 1);
-    return trash;
+    var sprite = this.game.add.sprite(x, y, 'trash');
+    this.game.physics.p2.enable(sprite);
+    sprite.body.collideWorldBounds = true;
+    return sprite;
   },
 
   update: function() {
@@ -158,29 +159,44 @@ module.exports = Menu;
   function Play() {}
   Play.prototype = {
     create: function() {
-      this.game.physics.startSystem(Phaser.Physics.ARCADE);
+      this.game.physics.startSystem(Phaser.Physics.P2JS);
       this.timer = this.game.time.create(true);
       this.timer.start();
       this.timer.loop(1000, this.createTrash, this);
+      this.starfield = this.game.add.tileSprite(0, 0, 3200, 2400, 'starfield');
+      this.blackholes = this.game.add.group();
+      this.trash = this.game.add.group();
+      this.game.input.onDown.add(this.createBlackHole, this);
     },
 
     update: function() {
-      if (this.game.input.activePointer.isDown) {
-        this.createBlackHole();
-      }
+      this.starfield.tilePosition.x -= 1;
+      this.trash.forEachAlive(this.moveTrash, this);
     },
 
     createTrash: function() {
       var trash = new Trash(this.game).create();
-
+      this.trash.add(trash);
       if (this.blackhole) {
-        trash.body.gravity = new Phaser.Point(this.blackhole.x - trash.body.x, this.blackhole.sprite.body.y - trash.body.y);
+        trash.body.gravity = new Phaser.Point(this.blackhole.body.x - trash.body.x, this.blackhole.body.y - trash.body.y);
       }
     },
 
+    moveTrash: function(trash) {
+      this.accelerateToBlackHole(trash, 30);
+    },
+
+    accelerateToBlackHole: function(trash, speed) {
+      if (typeof speed === 'undefined') { speed = 60; }
+      var angle = Math.atan2(this.blackhole.y - trash.y, this.blackhole.x - trash.x);
+      trash.body.rotation = angle + this.game.math.degToRad(90);  // correct angle of angry bullets (depends on the sprite used)
+      trash.body.force.x = Math.cos(angle) * speed;    // accelerateToObject
+      trash.body.force.y = Math.sin(angle) * speed;
+    },
+
     createBlackHole: function() {
-      this.blackhole = new BlackHole(this.game);
-      this.blackhole.create();
+      this.blackhole = new BlackHole(this.game).create();
+      this.blackholes.add(this.blackhole);
     }
   };
 
@@ -204,6 +220,7 @@ Preload.prototype = {
 
     this.load.spritesheet('blackhole', 'assets/blackhole.png', 64, 64, 4);
     this.load.image('trash', 'assets/ball.png');
+    this.game.load.image('starfield', 'assets/space_background-01.png');
 
   },
   create: function() {

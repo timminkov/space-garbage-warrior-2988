@@ -13,7 +13,9 @@ BlackHole.prototype = {
     this.sprite.animations.add('pulse');
     this.sprite.animations.play('pulse', 2, true);
 
-    this.game.physics.arcade.enable(this.sprite);
+    this.game.physics.p2.enable(this.sprite);
+    this.sprite.body.static = true;
+    return this.sprite;
   },
 
   update: function() {
