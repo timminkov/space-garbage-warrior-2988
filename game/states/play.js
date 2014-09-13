@@ -7,12 +7,15 @@
   Play.prototype = {
     create: function() {
       this.game.physics.startSystem(Phaser.Physics.P2JS);
+
       this.timer = this.game.time.create(true);
       this.timer.start();
       this.timer.loop(1000, this.createTrash, this);
+
       this.starfield = this.game.add.tileSprite(0, 0, 3200, 2400, 'starfield');
       this.blackholes = this.game.add.group();
       this.trash = this.game.add.group();
+
       this.game.input.onDown.add(this.createBlackHole, this);
     },
 
@@ -42,6 +45,11 @@
     },
 
     createBlackHole: function() {
+      // Destroy any existing blackholes.
+      if (typeof this.blackhole !== 'undefined') {
+        this.blackhole.destroy();
+      } 
+
       this.blackhole = new BlackHole(this.game).create();
       this.blackholes.add(this.blackhole);
     }

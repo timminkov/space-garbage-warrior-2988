@@ -21,7 +21,7 @@ BlackHole.prototype = {
 
   update: function() {
 
-  },
+  }
 };
 
 module.exports = BlackHole;
