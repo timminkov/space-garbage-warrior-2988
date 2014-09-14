@@ -43,6 +43,8 @@
       this.trash.forEachAlive(this.shrink, this);
 
       this.player.update();
+
+      if (typeof this.blackhole !== 'undefined') { this.blackhole.object.update(); }
     },
 
     createTrash: function() {
@@ -93,7 +95,6 @@
         body2.sprite.destroy();
       }
     }
-
   };
 
   module.exports = Play;
