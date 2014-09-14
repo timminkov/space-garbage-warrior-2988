@@ -19,6 +19,7 @@ Preload.prototype = {
     this.load.image('opening-text', 'assets/opening-text.png');
     this.game.load.image('starfield', 'assets/space_background-01.png');
     this.game.load.spritesheet('crosshair', 'assets/crosshair.png', 32, 32, 20);
+    this.game.load.image('power', 'assets/power_bar_battery.png');
   },
   create: function() {
     this.asset.cropEnabled = false;

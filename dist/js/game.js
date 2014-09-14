@@ -16,7 +16,7 @@ window.onload = function () {
 
   game.state.start('boot');
 };
-},{"./states/boot":6,"./states/gameover":7,"./states/intro":8,"./states/menu":9,"./states/play":10,"./states/preload":11}],2:[function(require,module,exports){
+},{"./states/boot":7,"./states/gameover":8,"./states/intro":9,"./states/menu":10,"./states/play":11,"./states/preload":12}],2:[function(require,module,exports){
 function BlackHole(game) {
   this.game = game;
   this.sprite = null;
@@ -37,9 +37,11 @@ BlackHole.prototype = {
     this.game.physics.p2.enable(this.sprite);
 
     this.sprite.body.static = true;
-    this.sprite.body.setRectangle(1, 1, 0, 0, 0);
+    this.sprite.body.setRectangle(10, 10, 0, 0, 0);
 
     this.sprite.object = this;
+    this.timeCreated = this.game.time.now;
+    this.game.time.events.add(6000, this.collapse, this);
 
     return this.sprite;
   },
@@ -49,7 +51,17 @@ BlackHole.prototype = {
       this.sprite.scale.x += 0.02;
       this.sprite.scale.y += 0.02;
     }
-  }
+
+    if ((this.game.time.elapsedSecondsSince(this.timeCreated)) > 5) {
+      this.sprite.scale.x -= 0.05;
+      this.sprite.scale.y -= 0.05;
+    }
+  },
+
+  collapse: function() {
+    this.sprite.kill();
+    this.sprite.destroy();
+  },
 };
 
 module.exports = BlackHole;
@@ -63,17 +75,28 @@ function Hud(game, player) {
 
 Hud.prototype = {
   preload: function() {
+    this.game.load.image('power', 'assets/power_bar_battery.png');
   },
 
   create: function() {
-    var style = { font: "65px Arial", fill: "#ff0044", align: "center" };
-    this.health = this.game.add.text(50, 570, this.player.power, style);
-    this.health.anchor.set(0.5);
+    //var style = { font: "65px Arial", fill: "#ff0044", align: "center" };
+    //this.health = this.game.add.text(50, 570, this.player.power, style);
+    //this.health.anchor.set(0.5);
+
+    this.power = this.game.add.sprite(-110, 270, 'power');
+
+    this.cropPower = new Phaser.Rectangle(0, 0, this.power.width, 320);
+    this.power.crop(this.cropPower);
+    this.powerSize = 320;
+
     return this;
   },
 
   update: function() {
-    this.health.text = this.player.power;
+    //this.health.text = this.player.power;
+    this.power.y = 600 - this.powerSize;
+    this.cropPower.setTo(0, 0, this.power.width, this.powerSize);
+    this.powerSize = this.player.power * 3.2;
   },
 };
 
@@ -127,11 +150,52 @@ Player.prototype = {
 module.exports = Player;
 
 },{}],5:[function(require,module,exports){
+var Trash = require('../objects/trash.js');
+
+function TrashSpawner(game, player, trashGroup) {
+  this.game = game;
+  this.sprite = null;
+  this.player = player;
+  this.trashGroup = trashGroup;
+}
+
+TrashSpawner.prototype = {
+  SPRITES: [
+    '',
+    '',
+  ],
+  preload: function() {
+
+  },
+
+  create: function() {
+    this.x = 850;
+    this.y = Math.floor((Math.random() * 600) + 1);
+    this.game.time.events.repeat(300, 5, this.createTrash, this);
+    this.timeCreated = this.game.time.now;
+    this.object = this;
+
+    return this;
+  },
+
+  update: function() {
+  },
+
+  createTrash: function() {
+    var y = Math.floor((Math.random() * 25) + this.y);
+    var trash = new Trash(this.game, this.player).create(this.x, y);
+    this.trashGroup.add(trash);
+  }
+};
+
+module.exports = TrashSpawner;
+
+},{"../objects/trash.js":6}],6:[function(require,module,exports){
 function Trash(game, player) {
   this.game = game;
   this.sprite = null;
   this.pointValue = 10;
-  this.damageAmount = 1;
+  this.damageAmount = 10;
   this.player = player;
 }
 
@@ -140,7 +204,7 @@ Trash.prototype = {
     // this.game.load.image('trash', 'assets/battery.png');
   },
 
-  create: function() {
+  create: function(x, y) {
     var y = Math.floor((Math.random() * 600) + 1)
 
     this.sprite = this.game.add.sprite(850, y, 'trash');
@@ -192,7 +256,7 @@ Trash.prototype = {
 
 module.exports = Trash;
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 
 'use strict';
 
@@ -211,7 +275,7 @@ Boot.prototype = {
 
 module.exports = Boot;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 
 'use strict';
 function GameOver() {}
@@ -239,7 +303,7 @@ GameOver.prototype = {
 };
 module.exports = GameOver;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 
 'use strict';
 function Intro() {}
@@ -269,7 +333,7 @@ Intro.prototype = {
 };
 module.exports = Intro;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 
 'use strict';
 function Menu() {}
@@ -301,11 +365,12 @@ Menu.prototype = {
 
 module.exports = Menu;
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
   var BlackHole = require('../objects/black-hole.js');
   var Trash = require('../objects/trash.js');
   var Player = require('../objects/player.js');
   var Hud = require('../objects/hud.js');
+  var TrashSpawner = require('../objects/trash-spawner.js');
 
   'use strict';
   function Play() {}
@@ -339,6 +404,9 @@ module.exports = Menu;
       this.player = new Player(this.game);
       this.player.create();
 
+      this.trashSpawner = this.createTrashSpawner();
+      this.timer.loop(5000, this.createTrashSpawner, this);
+
       this.game.input.onDown.add(this.createBlackHole, this);
 
       this.hud = new Hud(this.game, this.player).create();
@@ -353,48 +421,13 @@ module.exports = Menu;
       this.hud.update();
 
       this.player.update();
+      this.trashSpawner.update();
 
       if (typeof this.blackhole !== 'undefined') { this.blackhole.object.update(); }
     },
 
     updateTrash: function(trash) {
-      if(trash.x < -18 || trash.y < -30 || trash.y > 830) {
-        if (trash.alive) {
-          trash.kill();
-        }
-      }
-    },
-
-    damagePlayer: function(trash) {
-      this.player.changeHealth(trash.object.damageAmount);
-    },
-
-    updateTrash: function(trash) {
-      if(trash.x < -18 || trash.y < -30 || trash.y > 830) {
-        if (trash.alive) {
-          trash.kill();
-        }
-      }
-    },
-
-    damagePlayer: function(trash) {
-      this.player.changeHealth(trash.object.damageAmount);
-    },
-
-    updateTrash: function(trash) {
-      if(trash.x < -18 || trash.y < -30 || trash.y > 830) {
-        if (trash.alive) {
-          trash.kill();
-        }
-      }
-    },
-
-    damagePlayer: function(trash) {
-      this.player.changeHealth(trash.object.damageAmount);
-    },
-
-    updateTrash: function(trash) {
-      if(trash.x < -18 || trash.y < -30 || trash.y > 830) {
+      if(trash.x < -18 || trash.y < -30 || trash.y > 630) {
         if (trash.alive) {
           trash.kill();
         }
@@ -414,8 +447,12 @@ module.exports = Menu;
       this.trash.add(trash);
     },
 
+    createTrashSpawner: function() {
+      return new TrashSpawner(this.game, this.player, this.trash).create();
+    },
+
     shrink: function(trash) {
-      if (typeof this.blackhole !== 'undefined') {
+      if (typeof this.blackhole !== 'undefined' && this.blackhole.alive) {
         trash.object.shrink(this.blackhole);
       }
     },
@@ -429,7 +466,7 @@ module.exports = Menu;
     createBlackHole: function() {
       if (this.player.sprite.animations.currentAnim.name === "reload") {
         return false;
-      } 
+      }
 
       if (typeof this.blackhole !== 'undefined') {
         this.blackhole.destroy();
@@ -449,7 +486,11 @@ module.exports = Menu;
       // Possible bug: This seems to get called twice sometimes, so don't want
       // it destroying something that's null.
       if (body2.sprite) {
-        body2.sprite.object.player.power += 1;
+        if (body2.sprite.object.player.power) {
+          body2.sprite.object.player.power += 2;
+        } else {
+          body2.sprite.object.player.power = 100;
+        }
         body2.sprite.destroy();
       }
     }
@@ -457,7 +498,7 @@ module.exports = Menu;
 
   module.exports = Play;
 
-},{"../objects/black-hole.js":2,"../objects/hud.js":3,"../objects/player.js":4,"../objects/trash.js":5}],11:[function(require,module,exports){
+},{"../objects/black-hole.js":2,"../objects/hud.js":3,"../objects/player.js":4,"../objects/trash-spawner.js":5,"../objects/trash.js":6}],12:[function(require,module,exports){
 
 'use strict';
 function Preload() {
@@ -479,6 +520,7 @@ Preload.prototype = {
     this.load.image('opening-text', 'assets/opening-text.png');
     this.game.load.image('starfield', 'assets/space_background-01.png');
     this.game.load.spritesheet('crosshair', 'assets/crosshair.png', 32, 32, 20);
+    this.game.load.image('power', 'assets/power_bar_battery.png');
   },
   create: function() {
     this.asset.cropEnabled = false;

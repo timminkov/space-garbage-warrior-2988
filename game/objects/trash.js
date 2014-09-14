@@ -2,7 +2,7 @@ function Trash(game, player) {
   this.game = game;
   this.sprite = null;
   this.pointValue = 10;
-  this.damageAmount = 1;
+  this.damageAmount = 10;
   this.player = player;
 }
 
@@ -11,7 +11,7 @@ Trash.prototype = {
     // this.game.load.image('trash', 'assets/battery.png');
   },
 
-  create: function() {
+  create: function(x, y) {
     var y = Math.floor((Math.random() * 600) + 1)
 
     this.sprite = this.game.add.sprite(850, y, 'trash');

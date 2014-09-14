@@ -2,6 +2,7 @@
   var Trash = require('../objects/trash.js');
   var Player = require('../objects/player.js');
   var Hud = require('../objects/hud.js');
+  var TrashSpawner = require('../objects/trash-spawner.js');
 
   'use strict';
   function Play() {}
@@ -35,6 +36,9 @@
       this.player = new Player(this.game);
       this.player.create();
 
+      this.trashSpawner = this.createTrashSpawner();
+      this.timer.loop(5000, this.createTrashSpawner, this);
+
       this.game.input.onDown.add(this.createBlackHole, this);
 
       this.hud = new Hud(this.game, this.player).create();
@@ -49,48 +53,13 @@
       this.hud.update();
 
       this.player.update();
+      this.trashSpawner.update();
 
       if (typeof this.blackhole !== 'undefined') { this.blackhole.object.update(); }
     },
 
     updateTrash: function(trash) {
-      if(trash.x < -18 || trash.y < -30 || trash.y > 830) {
-        if (trash.alive) {
-          trash.kill();
-        }
-      }
-    },
-
-    damagePlayer: function(trash) {
-      this.player.changeHealth(trash.object.damageAmount);
-    },
-
-    updateTrash: function(trash) {
-      if(trash.x < -18 || trash.y < -30 || trash.y > 830) {
-        if (trash.alive) {
-          trash.kill();
-        }
-      }
-    },
-
-    damagePlayer: function(trash) {
-      this.player.changeHealth(trash.object.damageAmount);
-    },
-
-    updateTrash: function(trash) {
-      if(trash.x < -18 || trash.y < -30 || trash.y > 830) {
-        if (trash.alive) {
-          trash.kill();
-        }
-      }
-    },
-
-    damagePlayer: function(trash) {
-      this.player.changeHealth(trash.object.damageAmount);
-    },
-
-    updateTrash: function(trash) {
-      if(trash.x < -18 || trash.y < -30 || trash.y > 830) {
+      if(trash.x < -18 || trash.y < -30 || trash.y > 630) {
         if (trash.alive) {
           trash.kill();
         }
@@ -110,8 +79,12 @@
       this.trash.add(trash);
     },
 
+    createTrashSpawner: function() {
+      return new TrashSpawner(this.game, this.player, this.trash).create();
+    },
+
     shrink: function(trash) {
-      if (typeof this.blackhole !== 'undefined') {
+      if (typeof this.blackhole !== 'undefined' && this.blackhole.alive) {
         trash.object.shrink(this.blackhole);
       }
     },
@@ -125,7 +98,7 @@
     createBlackHole: function() {
       if (this.player.sprite.animations.currentAnim.name === "reload") {
         return false;
-      } 
+      }
 
       if (typeof this.blackhole !== 'undefined') {
         this.blackhole.destroy();
@@ -145,7 +118,11 @@
       // Possible bug: This seems to get called twice sometimes, so don't want
       // it destroying something that's null.
       if (body2.sprite) {
-        body2.sprite.object.player.power += 1;
+        if (body2.sprite.object.player.power) {
+          body2.sprite.object.player.power += 2;
+        } else {
+          body2.sprite.object.player.power = 100;
+        }
         body2.sprite.destroy();
       }
     }
