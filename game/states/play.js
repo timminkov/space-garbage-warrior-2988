@@ -28,6 +28,7 @@
       this.trash = this.game.add.group();
       this.trash.enableBody = true;
       this.trash.physicsBodyType = Phaser.Physics.P2JS;
+
       this.player = new Player(this.game);
       this.player.create();
 
@@ -66,6 +67,10 @@
     },
 
     createBlackHole: function() {
+      if (this.player.sprite.animations.currentAnim.name === "reload") {
+        return false;
+      } 
+
       if (typeof this.blackhole !== 'undefined') {
         this.blackhole.destroy();
       }
@@ -76,6 +81,8 @@
       this.blackhole.body.collides(this.trashCollisionGroup, this.consumeTrash, this);
 
       this.blackholes.add(this.blackhole);
+
+      this.player.reload();
     },
 
     consumeTrash: function(body1, body2) {

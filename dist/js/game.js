@@ -57,19 +57,34 @@ function Player(game) {
 
 Player.prototype = {
   preload: function() {
-    this.game.load.spritesheet('crosshair', 'assets/crosshair.png', 32, 32, 4);
+    this.game.load.spritesheet('crosshair', 'assets/crosshair.png', 32, 32);
   },
 
   create: function() {
     this.sprite = this.game.add.sprite(this.game.input.activePointer.worldX - 32, this.game.input.activePointer.worldY - 32, 'crosshair');
-    this.sprite.animations.add('pulse');
-    this.sprite.animations.play('pulse', 4, true);
+    this.sprite.animations.add('pulse', [1,2,3], 4, true);
+
+    var reloadAnimation = this.sprite.animations.add('reload', [4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19], 2, false);
+    reloadAnimation.onComplete.add(this.pulseLoaded, this);
+
+    this.sprite.animations.play('pulse');
+
     this.sprite.scale.setTo(2);
+
+    return this.sprite;
   },
 
   update: function() {
     this.sprite.x = this.game.input.activePointer.worldX - 32;
     this.sprite.y = this.game.input.activePointer.worldY - 32;
+  },
+
+  reload: function() {
+    this.sprite.animations.play('reload');
+  },
+
+  pulseLoaded: function(sprite, animation) {
+    sprite.animations.play('pulse');
   }
 };
 
@@ -239,6 +254,7 @@ module.exports = Menu;
       this.trash = this.game.add.group();
       this.trash.enableBody = true;
       this.trash.physicsBodyType = Phaser.Physics.P2JS;
+
       this.player = new Player(this.game);
       this.player.create();
 
@@ -277,6 +293,10 @@ module.exports = Menu;
     },
 
     createBlackHole: function() {
+      if (this.player.sprite.animations.currentAnim.name === "reload") {
+        return false;
+      } 
+
       if (typeof this.blackhole !== 'undefined') {
         this.blackhole.destroy();
       }
@@ -287,6 +307,8 @@ module.exports = Menu;
       this.blackhole.body.collides(this.trashCollisionGroup, this.consumeTrash, this);
 
       this.blackholes.add(this.blackhole);
+
+      this.player.reload();
     },
 
     consumeTrash: function(body1, body2) {
@@ -321,7 +343,7 @@ Preload.prototype = {
     this.load.spritesheet('blackhole', 'assets/blackhole.png', 64, 64, 4);
     this.load.image('trash', 'assets/trash/hamburger.png');
     this.game.load.image('starfield', 'assets/space_background-01.png');
-    this.game.load.spritesheet('crosshair', 'assets/crosshair.png', 32, 32, 4);
+    this.game.load.spritesheet('crosshair', 'assets/crosshair.png', 32, 32, 20);
   },
   create: function() {
     this.asset.cropEnabled = false;
