@@ -323,7 +323,7 @@ Intro.prototype = {
   update: function () {
     console.log(this.openingText.x);
     if (this.openingText.y > 7) {
-      this.openingText.y --;
+      this.openingText.y -= 0.85;
     } 
 
     if (this.game.input.activePointer.justPressed()) {
