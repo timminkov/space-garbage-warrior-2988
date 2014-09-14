@@ -360,6 +360,18 @@ module.exports = Menu;
       this.player.changeHealth(trash.object.damageAmount);
     },
 
+    updateTrash: function(trash) {
+      if(trash.x < -18 || trash.y < -30 || trash.y > 830) {
+        if (trash.alive) {
+          trash.kill();
+        }
+      }
+    },
+
+    damagePlayer: function(trash) {
+      this.player.changeHealth(trash.object.damageAmount);
+    },
+
     createTrash: function() {
       var trash = new Trash(this.game, this.player).create();
 
