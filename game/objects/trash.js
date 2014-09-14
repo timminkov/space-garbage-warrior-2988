@@ -8,13 +8,14 @@ function Trash(game, player) {
 
 Trash.prototype = {
   preload: function() {
-    this.game.load.image('trash', 'assets/trash/hamburger.png');
+    // this.game.load.image('trash', 'assets/battery.png');
   },
 
   create: function() {
     var y = Math.floor((Math.random() * 600) + 1)
 
     this.sprite = this.game.add.sprite(850, y, 'trash');
+
     this.game.physics.p2.enable(this.sprite);
     this.sprite.body.collideWorldBounds = false;
     this.sprite.object = this;

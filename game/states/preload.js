@@ -15,6 +15,7 @@ Preload.prototype = {
 
     this.load.spritesheet('blackhole', 'assets/blackhole.png', 64, 64, 4);
     this.load.image('trash', 'assets/trash/hamburger.png');
+    this.load.image('battery', 'assets/battery.png');
     this.game.load.image('starfield', 'assets/space_background-01.png');
     this.game.load.spritesheet('crosshair', 'assets/crosshair.png', 32, 32, 20);
   },

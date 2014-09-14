@@ -136,13 +136,14 @@ function Trash(game, player) {
 
 Trash.prototype = {
   preload: function() {
-    this.game.load.image('trash', 'assets/trash/hamburger.png');
+    // this.game.load.image('trash', 'assets/battery.png');
   },
 
   create: function() {
     var y = Math.floor((Math.random() * 600) + 1)
 
     this.sprite = this.game.add.sprite(850, y, 'trash');
+
     this.game.physics.p2.enable(this.sprite);
     this.sprite.body.collideWorldBounds = false;
     this.sprite.object = this;
@@ -442,6 +443,7 @@ Preload.prototype = {
 
     this.load.spritesheet('blackhole', 'assets/blackhole.png', 64, 64, 4);
     this.load.image('trash', 'assets/trash/hamburger.png');
+    this.load.image('battery', 'assets/battery.png');
     this.game.load.image('starfield', 'assets/space_background-01.png');
     this.game.load.spritesheet('crosshair', 'assets/crosshair.png', 32, 32, 20);
   },
