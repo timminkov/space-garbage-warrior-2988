@@ -143,6 +143,7 @@ Trash.prototype = {
     var y = Math.floor((Math.random() * 600) + 1)
 
     this.sprite = this.game.add.sprite(850, y, 'trash');
+    this.sprite.scale.setTo(2);
 
     this.game.physics.p2.enable(this.sprite);
     this.sprite.body.collideWorldBounds = false;
@@ -177,7 +178,7 @@ Trash.prototype = {
     var distance = this.distanceTo(blackhole);
 
     if (distance < 300) {
-      this.sprite.scale.setTo(0.01 * distance/3);
+      this.sprite.scale.setTo(0.02 * distance/3);
     }
   },
 
@@ -442,7 +443,7 @@ Preload.prototype = {
     this.load.setPreloadSprite(this.asset);
 
     this.load.spritesheet('blackhole', 'assets/blackhole.png', 64, 64, 4);
-    this.load.image('trash', 'assets/trash/hamburger.png');
+    this.load.image('trash', 'assets/trash/space_pipe.png');
     this.load.image('battery', 'assets/battery.png');
     this.game.load.image('starfield', 'assets/space_background-01.png');
     this.game.load.spritesheet('crosshair', 'assets/crosshair.png', 32, 32, 20);
