@@ -24,9 +24,9 @@
       this.blackholes.enableBody = true;
       this.blackholes.physicsBodyType = Phaser.Physics.P2JS;
 
-      this.trashes = this.game.add.group();
-      this.trashes.enableBody = true;
-      this.trashes.phsycisBodyType = Phaser.Physics.P2JS;
+      this.trash = this.game.add.group();
+      this.trash.enableBody = true;
+      this.trash.physicsBodyType = Phaser.Physics.P2JS;
 
       this.game.input.onDown.add(this.createBlackHole, this);
 
@@ -45,7 +45,7 @@
       trash.body.setCollisionGroup(this.trashCollisionGroup);
       trash.body.collides(this.blackholeCollisionGroup);
 
-      this.trashes.add(trash);
+      this.trash.add(trash);
     },
 
     shrink: function(trash) {
