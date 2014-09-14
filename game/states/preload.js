@@ -16,6 +16,7 @@ Preload.prototype = {
     this.load.spritesheet('blackhole', 'assets/blackhole.png', 64, 64, 4);
     this.load.image('trash', 'assets/trash/space_pipe.png');
     this.load.image('battery', 'assets/battery.png');
+    this.load.image('opening-text', 'assets/opening-text.png');
     this.game.load.image('starfield', 'assets/space_background-01.png');
     this.game.load.spritesheet('crosshair', 'assets/crosshair.png', 32, 32, 20);
   },
@@ -24,7 +25,7 @@ Preload.prototype = {
   },
   update: function() {
     if(!!this.ready) {
-      this.game.state.start('play');
+      this.game.state.start('intro');
     }
   },
   onLoadComplete: function() {

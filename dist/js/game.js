@@ -8,6 +8,7 @@ window.onload = function () {
   // Game States
   game.state.add('boot', require('./states/boot'));
   game.state.add('gameover', require('./states/gameover'));
+  game.state.add('intro', require('./states/intro'));
   game.state.add('menu', require('./states/menu'));
   game.state.add('play', require('./states/play'));
   game.state.add('preload', require('./states/preload'));
@@ -15,7 +16,7 @@ window.onload = function () {
 
   game.state.start('boot');
 };
-},{"./states/boot":6,"./states/gameover":7,"./states/menu":8,"./states/play":9,"./states/preload":10}],2:[function(require,module,exports){
+},{"./states/boot":6,"./states/gameover":7,"./states/intro":8,"./states/menu":9,"./states/play":10,"./states/preload":11}],2:[function(require,module,exports){
 function BlackHole(game) {
   this.game = game;
   this.sprite = null;
@@ -232,13 +233,43 @@ GameOver.prototype = {
   },
   update: function () {
     if(this.game.input.activePointer.justPressed()) {
-      this.game.state.start('play');
+      this.game.state.start('intro');
     }
   }
 };
 module.exports = GameOver;
 
 },{}],8:[function(require,module,exports){
+
+'use strict';
+function Intro() {}
+
+Intro.prototype = {
+  preload: function () {
+
+  },
+  create: function () {
+    // var style = { font: '15px Arial', fill: '#ffffff', align: 'center'};
+    // this.titleText = this.game.add.text(this.game.world.centerX, 400, 'Game Over!', style);
+    // this.titleText.anchor.setTo(0.5, 0.5);
+
+    this.game.load.spritesheet('opening-text', 'assets/opening-text.png', 32, 32);
+    this.openingText = this.game.add.sprite(45, 600, 'opening-text');
+  },
+  update: function () {
+    console.log(this.openingText.x);
+    if (this.openingText.y > 100) {
+      this.openingText.y --;
+    } 
+
+    if (this.game.input.activePointer.justPressed()) {
+      this.game.state.start('play');
+    }
+  }
+};
+module.exports = Intro;
+
+},{}],9:[function(require,module,exports){
 
 'use strict';
 function Menu() {}
@@ -270,7 +301,7 @@ Menu.prototype = {
 
 module.exports = Menu;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
   var BlackHole = require('../objects/black-hole.js');
   var Trash = require('../objects/trash.js');
   var Player = require('../objects/player.js');
@@ -426,7 +457,7 @@ module.exports = Menu;
 
   module.exports = Play;
 
-},{"../objects/black-hole.js":2,"../objects/hud.js":3,"../objects/player.js":4,"../objects/trash.js":5}],10:[function(require,module,exports){
+},{"../objects/black-hole.js":2,"../objects/hud.js":3,"../objects/player.js":4,"../objects/trash.js":5}],11:[function(require,module,exports){
 
 'use strict';
 function Preload() {
@@ -445,6 +476,7 @@ Preload.prototype = {
     this.load.spritesheet('blackhole', 'assets/blackhole.png', 64, 64, 4);
     this.load.image('trash', 'assets/trash/space_pipe.png');
     this.load.image('battery', 'assets/battery.png');
+    this.load.image('opening-text', 'assets/opening-text.png');
     this.game.load.image('starfield', 'assets/space_background-01.png');
     this.game.load.spritesheet('crosshair', 'assets/crosshair.png', 32, 32, 20);
   },
@@ -453,7 +485,7 @@ Preload.prototype = {
   },
   update: function() {
     if(!!this.ready) {
-      this.game.state.start('play');
+      this.game.state.start('intro');
     }
   },
   onLoadComplete: function() {
