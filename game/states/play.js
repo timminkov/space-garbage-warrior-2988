@@ -1,5 +1,6 @@
   var BlackHole = require('../objects/black-hole.js');
   var Trash = require('../objects/trash.js');
+  var Player = require('../objects/player.js');
 
   'use strict';
   function Play() {}
@@ -8,7 +9,7 @@
       this.game.physics.startSystem(Phaser.Physics.P2JS);
 
       this.game.physics.p2.setImpactEvents(true);
-    
+
       this.timer = this.game.time.create(true);
       this.timer.start();
       this.timer.loop(1000, this.createTrash, this);
@@ -27,6 +28,8 @@
       this.trash = this.game.add.group();
       this.trash.enableBody = true;
       this.trash.physicsBodyType = Phaser.Physics.P2JS;
+      this.player = new Player(this.game);
+      this.player.create();
 
       this.game.input.onDown.add(this.createBlackHole, this);
 
@@ -37,6 +40,8 @@
       this.starfield.tilePosition.x -= 1;
       this.trash.forEachAlive(this.moveTrash, this);
       this.trash.forEachAlive(this.shrink, this);
+
+      this.player.update();
     },
 
     createTrash: function() {

@@ -15,7 +15,7 @@ window.onload = function () {
 
   game.state.start('boot');
 };
-},{"./states/boot":4,"./states/gameover":5,"./states/menu":6,"./states/play":7,"./states/preload":8}],2:[function(require,module,exports){
+},{"./states/boot":5,"./states/gameover":6,"./states/menu":7,"./states/play":8,"./states/preload":9}],2:[function(require,module,exports){
 function BlackHole(game) {
   this.game = game;
   this.sprite = null;
@@ -50,6 +50,32 @@ BlackHole.prototype = {
 module.exports = BlackHole;
 
 },{}],3:[function(require,module,exports){
+function Player(game) {
+  this.game = game;
+  this.sprite = null;
+}
+
+Player.prototype = {
+  preload: function() {
+    this.game.load.spritesheet('crosshair', 'assets/crosshair.png', 32, 32, 4);
+  },
+
+  create: function() {
+    this.sprite = this.game.add.sprite(this.game.input.activePointer.worldX - 32, this.game.input.activePointer.worldY - 32, 'crosshair');
+    this.sprite.animations.add('pulse');
+    this.sprite.animations.play('pulse', 4, true);
+    this.sprite.scale.setTo(2);
+  },
+
+  update: function() {
+    this.sprite.x = this.game.input.activePointer.worldX - 32;
+    this.sprite.y = this.game.input.activePointer.worldY - 32;
+  }
+};
+
+module.exports = Player;
+
+},{}],4:[function(require,module,exports){
 function Trash(game) {
   this.game = game;
   this.sprite = null;
@@ -62,13 +88,16 @@ Trash.prototype = {
   },
 
   create: function() {
-    var x = Math.floor((Math.random() * 600) + 1)
-    var y = Math.floor((Math.random() * 800) + 1)
+    var x = Math.floor((Math.random() * 800) + 1)
+    var y = Math.floor((Math.random() * 600) + 1)
 
     this.sprite = this.game.add.sprite(x, y, 'trash');
     this.game.physics.p2.enable(this.sprite);
-    this.sprite.body.collideWorldBounds = true;
+    this.sprite.body.collideWorldBounds = false;
     this.sprite.object = this;
+
+    var rotation = Math.random() * 360;
+    this.sprite.body.rotation = rotation;
 
     return this.sprite;
   },
@@ -80,9 +109,9 @@ Trash.prototype = {
 
   accelerateTo: function(blackhole, speed) {
     if (typeof speed === 'undefined') { speed = 60; }
+
     var angle = Math.atan2(blackhole.y - this.sprite.y, blackhole.x - this.sprite.x);
 
-    this.sprite.body.rotation = angle + this.game.math.degToRad(90);  // correct angle of angry bullets (depends on the sprite used)
     this.sprite.body.force.x = Math.cos(angle) * speed;    // accelerateToObject
     this.sprite.body.force.y = Math.sin(angle) * speed;
   },
@@ -92,15 +121,15 @@ Trash.prototype = {
     var b = blackhole.y - this.sprite.body.y;
     var distance = Math.sqrt(a*a + b*b);
 
-    if (distance < 150) {
-      this.sprite.scale.setTo(0.01 * (distance/1.5));
+    if (distance < 100) {
+      this.sprite.scale.setTo(0.01 * distance);
     }
   }
 };
 
 module.exports = Trash;
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 
 'use strict';
 
@@ -119,7 +148,7 @@ Boot.prototype = {
 
 module.exports = Boot;
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 
 'use strict';
 function GameOver() {}
@@ -147,7 +176,7 @@ GameOver.prototype = {
 };
 module.exports = GameOver;
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 
 'use strict';
 function Menu() {}
@@ -179,9 +208,10 @@ Menu.prototype = {
 
 module.exports = Menu;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
   var BlackHole = require('../objects/black-hole.js');
   var Trash = require('../objects/trash.js');
+  var Player = require('../objects/player.js');
 
   'use strict';
   function Play() {}
@@ -190,7 +220,7 @@ module.exports = Menu;
       this.game.physics.startSystem(Phaser.Physics.P2JS);
 
       this.game.physics.p2.setImpactEvents(true);
-    
+
       this.timer = this.game.time.create(true);
       this.timer.start();
       this.timer.loop(1000, this.createTrash, this);
@@ -209,6 +239,8 @@ module.exports = Menu;
       this.trash = this.game.add.group();
       this.trash.enableBody = true;
       this.trash.physicsBodyType = Phaser.Physics.P2JS;
+      this.player = new Player(this.game);
+      this.player.create();
 
       this.game.input.onDown.add(this.createBlackHole, this);
 
@@ -219,6 +251,8 @@ module.exports = Menu;
       this.starfield.tilePosition.x -= 1;
       this.trash.forEachAlive(this.moveTrash, this);
       this.trash.forEachAlive(this.shrink, this);
+
+      this.player.update();
     },
 
     createTrash: function() {
@@ -268,7 +302,7 @@ module.exports = Menu;
 
   module.exports = Play;
 
-},{"../objects/black-hole.js":2,"../objects/trash.js":3}],8:[function(require,module,exports){
+},{"../objects/black-hole.js":2,"../objects/player.js":3,"../objects/trash.js":4}],9:[function(require,module,exports){
 
 'use strict';
 function Preload() {
@@ -287,7 +321,7 @@ Preload.prototype = {
     this.load.spritesheet('blackhole', 'assets/blackhole.png', 64, 64, 4);
     this.load.image('trash', 'assets/trash/hamburger.png');
     this.game.load.image('starfield', 'assets/space_background-01.png');
-
+    this.game.load.spritesheet('crosshair', 'assets/crosshair.png', 32, 32, 4);
   },
   create: function() {
     this.asset.cropEnabled = false;
