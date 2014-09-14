@@ -12,11 +12,11 @@ Intro.prototype = {
     // this.titleText.anchor.setTo(0.5, 0.5);
 
     this.game.load.spritesheet('opening-text', 'assets/opening-text.png', 32, 32);
-    this.openingText = this.game.add.sprite(45, 600, 'opening-text');
+    this.openingText = this.game.add.sprite(130, 600, 'opening-text');
   },
   update: function () {
     console.log(this.openingText.x);
-    if (this.openingText.y > 100) {
+    if (this.openingText.y > 7) {
       this.openingText.y --;
     } 
 
