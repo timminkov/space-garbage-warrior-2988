@@ -3,6 +3,7 @@
   var Player = require('../objects/player.js');
   var Hud = require('../objects/hud.js');
   var TrashSpawner = require('../objects/trash-spawner.js');
+  var Shop = require('../objects/shop.js');
 
   'use strict';
   function Play() {}
@@ -42,9 +43,19 @@
       this.game.input.onDown.add(this.createBlackHole, this);
 
       this.hud = new Hud(this.game, this.player).create();
+
+      this.playMusic = this.game.add.audio('play');
+      this.playMusic.play();
+
+      this.trashHitSound = this.game.add.audio('trash-hit');
+      this.siren = this.game.add.audio('siren');
+      this.coinSound = this.game.add.audio('coin');
+
+      this.timer.loop(30000, this.shopAlert, this);
     },
 
     update: function() {
+      this.player.sprite.bringToTop();
       this.starfield.tilePosition.x -= 1;
       this.starfield2.tilePosition.x -= 1.5;
       this.trash.forEachAlive(this.moveTrash, this);
@@ -56,6 +67,23 @@
       this.trashSpawner.update();
 
       if (typeof this.blackhole !== 'undefined') { this.blackhole.object.update(); }
+    },
+
+    shopAlert: function() {
+      var style = { font: "40px arcade-classic", fill: "#FF0000", align: "center" };
+      this.powerText = this.game.add.text(400, 300, "SHOP AVAILABLE", style);
+      this.powerText.anchor.setTo(0.5);
+      this.game.time.events.repeat(500, 11, this.flashShopText, this);
+
+      this.hud.createShopButton();
+    },
+
+    flashShopText: function() {
+      if (this.powerText.text === " ") {
+        this.powerText.text = "SHOP AVAILABLE";
+      } else {
+        this.powerText.text = " ";
+      }
     },
 
     updateTrash: function(trash) {
@@ -71,7 +99,7 @@
     },
 
     createTrash: function() {
-      var trash = new Trash(this.game, this.player).create();
+      var trash = new Trash(this.game, this.player, this.trashSpawner.getRandomTrash()).create();
 
       trash.body.setCollisionGroup(this.trashCollisionGroup);
       trash.body.collides(this.blackholeCollisionGroup);
@@ -90,7 +118,7 @@
     },
 
     moveTrash: function(trash) {
-      if (typeof this.blackhole !== 'undefined') {
+      if (typeof this.blackhole !== 'undefined' && this.blackhole.alive) {
         trash.object.accelerateTo(this.blackhole, 30);
       }
     },
@@ -104,25 +132,38 @@
         this.blackhole.destroy();
       }
 
-      this.blackhole = new BlackHole(this.game).create();
+      if (this.player.shopping === false) {
+        this.blackhole = new BlackHole(this.game).create();
 
-      this.blackhole.body.setCollisionGroup(this.blackholeCollisionGroup);
-      this.blackhole.body.collides(this.trashCollisionGroup, this.consumeTrash, this);
+        this.blackhole.body.setCollisionGroup(this.blackholeCollisionGroup);
+        this.blackhole.body.collides(this.trashCollisionGroup, this.consumeTrash, this);
 
-      this.blackholes.add(this.blackhole);
+        this.blackholes.add(this.blackhole);
 
-      this.player.reload();
+        this.player.reload();
+      }
     },
+
+    sirenPlaying: false,
 
     consumeTrash: function(body1, body2) {
       // Possible bug: This seems to get called twice sometimes, so don't want
       // it destroying something that's null.
       if (body2.sprite) {
         if (body2.sprite.object.player.power) {
-          body2.sprite.object.player.power += 2;
+          body2.sprite.object.player.power += body2.sprite.object.healAmount;
+          body2.sprite.object.player.cash += body2.sprite.object.cashAmount;
+          console.log(body2.sprite.object.cashAmount);
+          if(body2.sprite.object.cashAmount > 0) {
+            this.coinSound.volume = 0.2;
+            this.coinSound.play();
+          }
         } else {
           body2.sprite.object.player.power = 100;
         }
+
+        this.trashHitSound.volume = 0.2;
+        this.trashHitSound.play();
         body2.sprite.destroy();
       }
     }

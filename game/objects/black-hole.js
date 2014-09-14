@@ -12,17 +12,20 @@ BlackHole.prototype = {
     this.sprite = this.game.add.sprite(this.game.input.activePointer.worldX, this.game.input.activePointer.worldY, 'blackhole');
     this.sprite.scale.setTo(0.2);
 
+
     this.sprite.animations.add('pulse');
     this.sprite.animations.play('pulse', 12, true);
 
     this.game.physics.p2.enable(this.sprite);
 
-    this.sprite.body.static = true;
-    this.sprite.body.setRectangle(10, 10, 0, 0, 0);
+    this.sprite.body.setCircle(32, 0, 0, 0);
 
     this.sprite.object = this;
     this.timeCreated = this.game.time.now;
     this.game.time.events.add(6000, this.collapse, this);
+
+    this.fireSound = this.game.add.audio('blackhole');
+    this.fireSound.play();
 
     return this.sprite;
   },
@@ -33,6 +36,9 @@ BlackHole.prototype = {
       this.sprite.scale.y += 0.02;
     }
 
+    this.sprite.body.velocity.y = 0;
+    this.sprite.body.velocity.x = 0;
+
     if ((this.game.time.elapsedSecondsSince(this.timeCreated)) > 5) {
       this.sprite.scale.x -= 0.05;
       this.sprite.scale.y -= 0.05;
@@ -40,6 +46,7 @@ BlackHole.prototype = {
   },
 
   collapse: function() {
+    this.fireSound.stop();
     this.sprite.kill();
     this.sprite.destroy();
   },

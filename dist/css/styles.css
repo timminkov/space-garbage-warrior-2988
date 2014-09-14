@@ -8,4 +8,10 @@ body {
   margin-left: auto;
   margin-right: auto;
   cursor: none;
+  font-family: arcade-classic;
+}
+
+@font-face {
+  font-family: arcade-classic;
+  src: url(../assets/fonts/ARCADECLASSIC.TTF);
 }
