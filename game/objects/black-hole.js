@@ -18,9 +18,11 @@ BlackHole.prototype = {
     this.game.physics.p2.enable(this.sprite);
 
     this.sprite.body.static = true;
-    this.sprite.body.setRectangle(1, 1, 0, 0, 0);
+    this.sprite.body.setRectangle(10, 10, 0, 0, 0);
 
     this.sprite.object = this;
+    this.timeCreated = this.game.time.now;
+    this.game.time.events.add(6000, this.collapse, this);
 
     return this.sprite;
   },
@@ -30,7 +32,17 @@ BlackHole.prototype = {
       this.sprite.scale.x += 0.02;
       this.sprite.scale.y += 0.02;
     }
-  }
+
+    if ((this.game.time.elapsedSecondsSince(this.timeCreated)) > 5) {
+      this.sprite.scale.x -= 0.05;
+      this.sprite.scale.y -= 0.05;
+    }
+  },
+
+  collapse: function() {
+    this.sprite.kill();
+    this.sprite.destroy();
+  },
 };
 
 module.exports = BlackHole;
