@@ -1,6 +1,7 @@
   var BlackHole = require('../objects/black-hole.js');
   var Trash = require('../objects/trash.js');
   var Player = require('../objects/player.js');
+  var Hud = require('../objects/hud.js');
 
   'use strict';
   function Play() {}
@@ -14,7 +15,9 @@
       this.timer.start();
       this.timer.loop(1000, this.createTrash, this);
 
+      this.game.stage.setBackgroundColor = '#ffffff';
       this.starfield = this.game.add.tileSprite(0, 0, 3200, 2400, 'starfield');
+      this.starfield2 = this.game.add.tileSprite(0, -400, 3200, 2400, 'starfield');
 
       this.blackholeCollisionGroup = this.game.physics.p2.createCollisionGroup();
       this.trashCollisionGroup = this.game.physics.p2.createCollisionGroup();
@@ -34,21 +37,72 @@
 
       this.game.input.onDown.add(this.createBlackHole, this);
 
-      this.score = 0;
+      this.hud = new Hud(this.game, this.player).create();
     },
 
     update: function() {
       this.starfield.tilePosition.x -= 1;
+      this.starfield2.tilePosition.x -= 1.5;
       this.trash.forEachAlive(this.moveTrash, this);
       this.trash.forEachAlive(this.shrink, this);
+      this.trash.forEach(this.updateTrash, this);
+      this.hud.update();
 
       this.player.update();
 
       if (typeof this.blackhole !== 'undefined') { this.blackhole.object.update(); }
     },
 
+    updateTrash: function(trash) {
+      if(trash.x < -18 || trash.y < -30 || trash.y > 830) {
+        if (trash.alive) {
+          trash.kill();
+        }
+      }
+    },
+
+    damagePlayer: function(trash) {
+      this.player.changeHealth(trash.object.damageAmount);
+    },
+
+    updateTrash: function(trash) {
+      if(trash.x < -18 || trash.y < -30 || trash.y > 830) {
+        if (trash.alive) {
+          trash.kill();
+        }
+      }
+    },
+
+    damagePlayer: function(trash) {
+      this.player.changeHealth(trash.object.damageAmount);
+    },
+
+    updateTrash: function(trash) {
+      if(trash.x < -18 || trash.y < -30 || trash.y > 830) {
+        if (trash.alive) {
+          trash.kill();
+        }
+      }
+    },
+
+    damagePlayer: function(trash) {
+      this.player.changeHealth(trash.object.damageAmount);
+    },
+
+    updateTrash: function(trash) {
+      if(trash.x < -18 || trash.y < -30 || trash.y > 830) {
+        if (trash.alive) {
+          trash.kill();
+        }
+      }
+    },
+
+    damagePlayer: function(trash) {
+      this.player.changeHealth(trash.object.damageAmount);
+    },
+
     createTrash: function() {
-      var trash = new Trash(this.game).create();
+      var trash = new Trash(this.game, this.player).create();
 
       trash.body.setCollisionGroup(this.trashCollisionGroup);
       trash.body.collides(this.blackholeCollisionGroup);
@@ -91,7 +145,7 @@
       // Possible bug: This seems to get called twice sometimes, so don't want
       // it destroying something that's null.
       if (body2.sprite) {
-        this.score += body2.sprite.object.pointValue;
+        body2.sprite.object.player.power += 1;
         body2.sprite.destroy();
       }
     }

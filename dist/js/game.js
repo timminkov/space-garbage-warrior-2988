@@ -15,7 +15,7 @@ window.onload = function () {
 
   game.state.start('boot');
 };
-},{"./states/boot":5,"./states/gameover":6,"./states/menu":7,"./states/play":8,"./states/preload":9}],2:[function(require,module,exports){
+},{"./states/boot":6,"./states/gameover":7,"./states/menu":8,"./states/play":9,"./states/preload":10}],2:[function(require,module,exports){
 function BlackHole(game) {
   this.game = game;
   this.sprite = null;
@@ -54,9 +54,35 @@ BlackHole.prototype = {
 module.exports = BlackHole;
 
 },{}],3:[function(require,module,exports){
+function Hud(game, player) {
+  this.game = game;
+  this.sprite = null;
+  this.player = player;
+}
+
+Hud.prototype = {
+  preload: function() {
+  },
+
+  create: function() {
+    var style = { font: "65px Arial", fill: "#ff0044", align: "center" };
+    this.health = this.game.add.text(50, 570, this.player.power, style);
+    this.health.anchor.set(0.5);
+    return this;
+  },
+
+  update: function() {
+    this.health.text = this.player.power;
+  },
+};
+
+module.exports = Hud;
+
+},{}],4:[function(require,module,exports){
 function Player(game) {
   this.game = game;
   this.sprite = null;
+  this.power = 100;
 }
 
 Player.prototype = {
@@ -74,6 +100,11 @@ Player.prototype = {
     this.sprite.animations.play('pulse');
 
     this.sprite.scale.setTo(2);
+    this.object = this;
+
+    this.game.time.events.loop(Phaser.Timer.SECOND, function() {
+     this.power -= 1;
+    }, this);
 
     return this.sprite;
   },
@@ -89,16 +120,18 @@ Player.prototype = {
 
   pulseLoaded: function(sprite, animation) {
     sprite.animations.play('pulse');
-  }
+  },
 };
 
 module.exports = Player;
 
-},{}],4:[function(require,module,exports){
-function Trash(game) {
+},{}],5:[function(require,module,exports){
+function Trash(game, player) {
   this.game = game;
   this.sprite = null;
   this.pointValue = 10;
+  this.damageAmount = 1;
+  this.player = player;
 }
 
 Trash.prototype = {
@@ -107,13 +140,17 @@ Trash.prototype = {
   },
 
   create: function() {
-    var x = Math.floor((Math.random() * 800) + 1)
     var y = Math.floor((Math.random() * 600) + 1)
 
-    this.sprite = this.game.add.sprite(x, y, 'trash');
+    this.sprite = this.game.add.sprite(850, y, 'trash');
     this.game.physics.p2.enable(this.sprite);
     this.sprite.body.collideWorldBounds = false;
     this.sprite.object = this;
+
+    var randomVelocity = (Math.random() * 800) + 100;
+    console.log(randomVelocity);
+    this.sprite.body.velocity.x = -200;
+
 
     var rotation = Math.random() * 360;
     this.sprite.body.rotation = rotation;
@@ -122,33 +159,37 @@ Trash.prototype = {
   },
 
   update: function() {
-
-
   },
+
 
   accelerateTo: function(blackhole, speed) {
     if (typeof speed === 'undefined') { speed = 60; }
 
     var angle = Math.atan2(blackhole.y - this.sprite.y, blackhole.x - this.sprite.x);
 
-    this.sprite.body.force.x = Math.cos(angle) * speed;    // accelerateToObject
-    this.sprite.body.force.y = Math.sin(angle) * speed;
+    var distance = this.distanceTo(blackhole);
+    this.sprite.body.force.x = Math.cos(angle) * (speed / Math.log(Math.pow(distance, (1 / 10))));
+    this.sprite.body.force.y = Math.sin(angle) * ((speed / Math.log(Math.pow(distance, (1 / 10)))));
   },
 
   shrink: function(blackhole) {
+    var distance = this.distanceTo(blackhole);
+
+    if (distance < 300) {
+      this.sprite.scale.setTo(0.01 * distance/3);
+    }
+  },
+
+  distanceTo: function(blackhole) {
     var a = blackhole.x - this.sprite.body.x;
     var b = blackhole.y - this.sprite.body.y;
-    var distance = Math.sqrt(a*a + b*b);
-
-    if (distance < 100) {
-      this.sprite.scale.setTo(0.01 * distance);
-    }
+    return Math.sqrt(a*a + b*b);
   }
 };
 
 module.exports = Trash;
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 
 'use strict';
 
@@ -167,7 +208,7 @@ Boot.prototype = {
 
 module.exports = Boot;
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 
 'use strict';
 function GameOver() {}
@@ -195,7 +236,7 @@ GameOver.prototype = {
 };
 module.exports = GameOver;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 
 'use strict';
 function Menu() {}
@@ -227,10 +268,11 @@ Menu.prototype = {
 
 module.exports = Menu;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
   var BlackHole = require('../objects/black-hole.js');
   var Trash = require('../objects/trash.js');
   var Player = require('../objects/player.js');
+  var Hud = require('../objects/hud.js');
 
   'use strict';
   function Play() {}
@@ -244,7 +286,9 @@ module.exports = Menu;
       this.timer.start();
       this.timer.loop(1000, this.createTrash, this);
 
+      this.game.stage.setBackgroundColor = '#ffffff';
       this.starfield = this.game.add.tileSprite(0, 0, 3200, 2400, 'starfield');
+      this.starfield2 = this.game.add.tileSprite(0, -400, 3200, 2400, 'starfield');
 
       this.blackholeCollisionGroup = this.game.physics.p2.createCollisionGroup();
       this.trashCollisionGroup = this.game.physics.p2.createCollisionGroup();
@@ -264,21 +308,60 @@ module.exports = Menu;
 
       this.game.input.onDown.add(this.createBlackHole, this);
 
-      this.score = 0;
+      this.hud = new Hud(this.game, this.player).create();
     },
 
     update: function() {
       this.starfield.tilePosition.x -= 1;
+      this.starfield2.tilePosition.x -= 1.5;
       this.trash.forEachAlive(this.moveTrash, this);
       this.trash.forEachAlive(this.shrink, this);
+      this.trash.forEach(this.updateTrash, this);
+      this.hud.update();
 
       this.player.update();
 
       if (typeof this.blackhole !== 'undefined') { this.blackhole.object.update(); }
     },
 
+    updateTrash: function(trash) {
+      if(trash.x < -18 || trash.y < -30 || trash.y > 830) {
+        if (trash.alive) {
+          trash.kill();
+        }
+      }
+    },
+
+    damagePlayer: function(trash) {
+      this.player.changeHealth(trash.object.damageAmount);
+    },
+
+    updateTrash: function(trash) {
+      if(trash.x < -18 || trash.y < -30 || trash.y > 830) {
+        if (trash.alive) {
+          trash.kill();
+        }
+      }
+    },
+
+    damagePlayer: function(trash) {
+      this.player.changeHealth(trash.object.damageAmount);
+    },
+
+    updateTrash: function(trash) {
+      if(trash.x < -18 || trash.y < -30 || trash.y > 830) {
+        if (trash.alive) {
+          trash.kill();
+        }
+      }
+    },
+
+    damagePlayer: function(trash) {
+      this.player.changeHealth(trash.object.damageAmount);
+    },
+
     createTrash: function() {
-      var trash = new Trash(this.game).create();
+      var trash = new Trash(this.game, this.player).create();
 
       trash.body.setCollisionGroup(this.trashCollisionGroup);
       trash.body.collides(this.blackholeCollisionGroup);
@@ -321,7 +404,7 @@ module.exports = Menu;
       // Possible bug: This seems to get called twice sometimes, so don't want
       // it destroying something that's null.
       if (body2.sprite) {
-        this.score += body2.sprite.object.pointValue;
+        body2.sprite.object.player.power += 1;
         body2.sprite.destroy();
       }
     }
@@ -329,7 +412,7 @@ module.exports = Menu;
 
   module.exports = Play;
 
-},{"../objects/black-hole.js":2,"../objects/player.js":3,"../objects/trash.js":4}],9:[function(require,module,exports){
+},{"../objects/black-hole.js":2,"../objects/hud.js":3,"../objects/player.js":4,"../objects/trash.js":5}],10:[function(require,module,exports){
 
 'use strict';
 function Preload() {

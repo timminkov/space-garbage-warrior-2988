@@ -1,6 +1,7 @@
 function Player(game) {
   this.game = game;
   this.sprite = null;
+  this.power = 100;
 }
 
 Player.prototype = {
@@ -18,6 +19,11 @@ Player.prototype = {
     this.sprite.animations.play('pulse');
 
     this.sprite.scale.setTo(2);
+    this.object = this;
+
+    this.game.time.events.loop(Phaser.Timer.SECOND, function() {
+     this.power -= 1;
+    }, this);
 
     return this.sprite;
   },
@@ -33,7 +39,7 @@ Player.prototype = {
 
   pulseLoaded: function(sprite, animation) {
     sprite.animations.play('pulse');
-  }
+  },
 };
 
 module.exports = Player;
