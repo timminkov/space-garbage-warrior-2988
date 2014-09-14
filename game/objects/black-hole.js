@@ -22,6 +22,10 @@ BlackHole.prototype = {
 
   update: function() {
 
+  },
+
+  consumed: function() {
+    console.log('testinggg attention please!');
   }
 };
 

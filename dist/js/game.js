@@ -39,6 +39,10 @@ BlackHole.prototype = {
 
   update: function() {
 
+  },
+
+  consumed: function() {
+    console.log('testinggg attention please!');
   }
 };
 
@@ -48,6 +52,7 @@ module.exports = BlackHole;
 function Trash(game) {
   this.game = game;
   this.sprite = null;
+  this.pointValue = 10;
 }
 
 Trash.prototype = {
@@ -59,16 +64,18 @@ Trash.prototype = {
     var x = Math.floor((Math.random() * 600) + 1)
     var y = Math.floor((Math.random() * 800) + 1)
 
-    var sprite = this.game.add.sprite(x, y, 'trash');
-    this.game.physics.p2.enable(sprite);
-    sprite.body.collideWorldBounds = true;
+    this.sprite = this.game.add.sprite(x, y, 'trash');
+    this.game.physics.p2.enable(this.sprite);
+    this.sprite.body.collideWorldBounds = true;
 
-    return sprite;
+    this.sprite.object = this;
+    
+    return this.sprite;
   },
 
   update: function() {
 
-  },
+  }
 };
 
 module.exports = Trash;
@@ -163,25 +170,44 @@ module.exports = Menu;
     create: function() {
       this.game.physics.startSystem(Phaser.Physics.P2JS);
 
+      this.game.physics.p2.setImpactEvents(true);
+    
       this.timer = this.game.time.create(true);
       this.timer.start();
       this.timer.loop(1000, this.createTrash, this);
 
       this.starfield = this.game.add.tileSprite(0, 0, 3200, 2400, 'starfield');
+
+      this.blackholeCollisionGroup = this.game.physics.p2.createCollisionGroup();
+      this.trashCollisionGroup = this.game.physics.p2.createCollisionGroup();
+
+      this.game.physics.p2.updateBoundsCollisionGroup();
+
       this.blackholes = this.game.add.group();
-      this.trash = this.game.add.group();
+      this.blackholes.enableBody = true;
+      this.blackholes.physicsBodyType = Phaser.Physics.P2JS;
+
+      this.trashes = this.game.add.group();
+      this.trashes.enableBody = true;
+      this.trashes.phsycisBodyType = Phaser.Physics.P2JS;
 
       this.game.input.onDown.add(this.createBlackHole, this);
+
+      this.score = 0;
     },
 
     update: function() {
       this.starfield.tilePosition.x -= 1;
-      this.trash.forEachAlive(this.moveTrash, this);
+      this.trashes.forEachAlive(this.moveTrash, this);
     },
 
     createTrash: function() {
       var trash = new Trash(this.game).create();
-      this.trash.add(trash);
+
+      trash.body.setCollisionGroup(this.trashCollisionGroup);
+      trash.body.collides(this.blackholeCollisionGroup);
+
+      this.trashes.add(trash);
     },
 
     moveTrash: function(trash) {
@@ -206,8 +232,22 @@ module.exports = Menu;
       } 
 
       this.blackhole = new BlackHole(this.game).create();
+
+      this.blackhole.body.setCollisionGroup(this.blackholeCollisionGroup);
+      this.blackhole.body.collides(this.trashCollisionGroup, this.consumeTrash, this);
+
       this.blackholes.add(this.blackhole);
+    },
+
+    consumeTrash: function(body1, body2) {
+      // Possible bug: This seems to get called twice sometimes, so don't want
+      // it destroying something that's null.
+      if (body2.sprite) {
+        this.score += body2.sprite.object.pointValue;
+        body2.sprite.destroy();
+      }
     }
+
   };
 
   module.exports = Play;

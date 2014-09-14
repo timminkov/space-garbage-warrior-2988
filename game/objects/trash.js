@@ -1,6 +1,7 @@
 function Trash(game) {
   this.game = game;
   this.sprite = null;
+  this.pointValue = 10;
 }
 
 Trash.prototype = {
@@ -22,6 +23,7 @@ Trash.prototype = {
 
   update: function() {
 
+
   },
 
   accelerateTo: function(blackhole, speed) {
@@ -42,6 +44,7 @@ Trash.prototype = {
         this.sprite.scale.setTo(0.01 * (distance/1.5));
       }
     }
+  }
 };
 
 module.exports = Trash;
