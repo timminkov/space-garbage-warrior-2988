@@ -1,9 +1,17 @@
-function Trash(game, player) {
+function Trash(game, player, trashType) {
   this.game = game;
   this.sprite = null;
   this.pointValue = 10;
-  this.damageAmount = 10;
+  this.cashAmount = 0;
+  this.healAmount = 2;
+  if (trashType === 'trash-battery') {
+    this.healAmount = 20;
+  } else if (trashType ==='trash-cash') {
+    this.cashAmount = 1;
+    this.healAmount = 0;
+  }
   this.player = player;
+  this.trashType = trashType;
 }
 
 Trash.prototype = {
@@ -14,17 +22,14 @@ Trash.prototype = {
   create: function(x, y) {
     var y = Math.floor((Math.random() * 600) + 1)
 
-    this.sprite = this.game.add.sprite(850, y, 'trash');
-    this.sprite.scale.setTo(2);
+    this.sprite = this.game.add.sprite(850, y, this.trashType);
 
     this.game.physics.p2.enable(this.sprite);
     this.sprite.body.collideWorldBounds = false;
     this.sprite.object = this;
 
     var randomVelocity = (Math.random() * 800) + 100;
-    console.log(randomVelocity);
     this.sprite.body.velocity.x = -200;
-
 
     var rotation = Math.random() * 360;
     this.sprite.body.rotation = rotation;
@@ -50,7 +55,7 @@ Trash.prototype = {
     var distance = this.distanceTo(blackhole);
 
     if (distance < 300) {
-      this.sprite.scale.setTo(0.02 * distance/3);
+      this.sprite.scale.setTo(0.02 * distance/6);
     }
   },
 

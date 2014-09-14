@@ -16,7 +16,7 @@ window.onload = function () {
 
   game.state.start('boot');
 };
-},{"./states/boot":7,"./states/gameover":8,"./states/intro":9,"./states/menu":10,"./states/play":11,"./states/preload":12}],2:[function(require,module,exports){
+},{"./states/boot":8,"./states/gameover":9,"./states/intro":10,"./states/menu":11,"./states/play":12,"./states/preload":13}],2:[function(require,module,exports){
 function BlackHole(game) {
   this.game = game;
   this.sprite = null;
@@ -31,17 +31,20 @@ BlackHole.prototype = {
     this.sprite = this.game.add.sprite(this.game.input.activePointer.worldX, this.game.input.activePointer.worldY, 'blackhole');
     this.sprite.scale.setTo(0.2);
 
+
     this.sprite.animations.add('pulse');
     this.sprite.animations.play('pulse', 12, true);
 
     this.game.physics.p2.enable(this.sprite);
 
-    this.sprite.body.static = true;
-    this.sprite.body.setRectangle(10, 10, 0, 0, 0);
+    this.sprite.body.setCircle(32, 0, 0, 0);
 
     this.sprite.object = this;
     this.timeCreated = this.game.time.now;
     this.game.time.events.add(6000, this.collapse, this);
+
+    this.fireSound = this.game.add.audio('blackhole');
+    this.fireSound.play();
 
     return this.sprite;
   },
@@ -52,6 +55,9 @@ BlackHole.prototype = {
       this.sprite.scale.y += 0.02;
     }
 
+    this.sprite.body.velocity.y = 0;
+    this.sprite.body.velocity.x = 0;
+
     if ((this.game.time.elapsedSecondsSince(this.timeCreated)) > 5) {
       this.sprite.scale.x -= 0.05;
       this.sprite.scale.y -= 0.05;
@@ -59,6 +65,7 @@ BlackHole.prototype = {
   },
 
   collapse: function() {
+    this.fireSound.stop();
     this.sprite.kill();
     this.sprite.destroy();
   },
@@ -67,10 +74,13 @@ BlackHole.prototype = {
 module.exports = BlackHole;
 
 },{}],3:[function(require,module,exports){
+var Shop = require('../objects/shop.js');
+
 function Hud(game, player) {
   this.game = game;
   this.sprite = null;
   this.player = player;
+  this.shopButtonExists = false;
 }
 
 Hud.prototype = {
@@ -79,34 +89,62 @@ Hud.prototype = {
   },
 
   create: function() {
-    //var style = { font: "65px Arial", fill: "#ff0044", align: "center" };
-    //this.health = this.game.add.text(50, 570, this.player.power, style);
-    //this.health.anchor.set(0.5);
-
     this.power = this.game.add.sprite(-110, 270, 'power');
 
     this.cropPower = new Phaser.Rectangle(0, 0, this.power.width, 320);
     this.power.crop(this.cropPower);
     this.powerSize = 320;
 
+    var style = { font: "65px arcade-classic", fill: "#ff0044", align: "center" };
+    this.coins = this.game.add.text(100, 540, "0", style);
+
+    var style2 = { font: "40px arcade-classic", fill: "#790091", align: "center" };
+    this.powerText = this.game.add.text(34, 540, "P   O   W   E   R", style2);
+    this.powerText.angle = 270;
+
     return this;
   },
 
   update: function() {
-    //this.health.text = this.player.power;
     this.power.y = 600 - this.powerSize;
     this.cropPower.setTo(0, 0, this.power.width, this.powerSize);
     this.powerSize = this.player.power * 3.2;
+    this.coins.text = this.player.cash;
   },
+
+  createShopButton: function() {
+    if (this.shopButtonExists === false) {
+      this.shopButtonExists = true;
+      this.shopButton = this.game.add.button(200, 500, 'green-button', this.openShop, this, 0, 1, 2, 1);
+      this.shopButton.scale.setTo(2, 2);
+
+      var style = { font: "32px arcade-classic", fill: "#000000", align: "center" };
+      this.shopText = this.game.add.text(230, 540, "SHOP", style);
+    }
+  },
+
+  openShop: function() {
+    this.shopButton.destroy();
+    this.shopText.destroy();
+    this.shopButtonExists = false;
+
+    if (this.player.shopping === false) {
+      new Shop(this.game, this.player).create();
+    }
+  }
 };
 
 module.exports = Hud;
 
-},{}],4:[function(require,module,exports){
+},{"../objects/shop.js":5}],4:[function(require,module,exports){
 function Player(game) {
   this.game = game;
   this.sprite = null;
   this.power = 100;
+  this.cash = 0;
+  this.reloadSpeed = 2;
+  this.hasReloadUpgrade = false;
+  this.shopping = false;
 }
 
 Player.prototype = {
@@ -118,18 +156,30 @@ Player.prototype = {
     this.sprite = this.game.add.sprite(this.game.input.activePointer.worldX - 32, this.game.input.activePointer.worldY - 32, 'crosshair');
     this.sprite.animations.add('pulse', [1,2,3], 4, true);
 
-    var reloadAnimation = this.sprite.animations.add('reload', [4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19], 2, false);
+    var reloadAnimation = this.sprite.animations.add('reload', [4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19], this.reloadSpeed, false);
     reloadAnimation.onComplete.add(this.pulseLoaded, this);
 
     this.sprite.animations.play('pulse');
 
     this.sprite.scale.setTo(2);
     this.object = this;
+    this.siren = this.game.add.audio('siren');
+    this.siren.volume = 0.5;
 
     this.game.time.events.loop(Phaser.Timer.SECOND, function() {
      this.power -= 1;
+      if (this.power <= 10) {
+        if (this.sirenPlaying === false) {
+          this.siren.play();
+        }
+        this.sirenPlaying = true;
+      } else  {
+        this.siren.stop();
+        this.sirenPlaying = false;
+      }
     }, this);
 
+    this.reloadSound = this.game.add.audio('reload');
     return this.sprite;
   },
 
@@ -138,11 +188,14 @@ Player.prototype = {
     this.sprite.y = this.game.input.activePointer.worldY - 32;
   },
 
+  sirenPlaying: false,
+
   reload: function() {
     this.sprite.animations.play('reload');
   },
 
   pulseLoaded: function(sprite, animation) {
+    this.reloadSound.play();
     sprite.animations.play('pulse');
   },
 };
@@ -150,6 +203,64 @@ Player.prototype = {
 module.exports = Player;
 
 },{}],5:[function(require,module,exports){
+function Shop(game, player) {
+  this.game = game;
+  this.player = player;
+  this.sprite = null;
+  this.reloadAvailable = player.hasReloadUpgrade;
+}
+
+Shop.prototype = {
+  preload: function() {
+
+  },
+
+  create: function() {
+    this.player.shopping = true;
+    this.shopBackground = this.game.add.sprite(this.game.world.centerX, 450, 'shop');
+    this.shopBackground.anchor.setTo(0.5, 1);
+    this.shopBackground.height = 0;
+
+    var tween = this.game.add.tween(this.shopBackground).to( { height: 300}, 2000, Phaser.Easing.Bounce.Out, false, 0, 0).start();
+    tween.onComplete.add(this.createButtonsAndText, this);
+  },
+
+  update: function() {
+
+  },
+
+  createButtonsAndText: function() {
+    if (this.player.hasReloadUpgrade === false) {
+      this.reloadButton = this.game.add.button(226, 330, 'black-button', this.buyReloadUpgrade, this, 0, 1, 2, 1);
+    }
+    var style = { font: "40px arcade-classic", fill: "#FF0000", align: "center" };
+    this.shopTitle = this.game.add.text(350, 160, "S  H  O  P", style);
+
+    this.closeButton = this.game.add.button(340, 355, 'close-button', this.closeShop, this, 1, 0, 2);
+    this.closeButton.scale.setTo(2, 2);
+  },
+
+  buyReloadUpgrade: function() {
+    if (this.player.cash >= 50) {
+      this.player.hasReloadUpgrade = true;
+      this.player.cash -= 50;
+      this.reloadSpeed = 4;
+      this.button.kill();
+    }
+  },
+
+  closeShop: function() {
+    this.reloadButton.destroy();
+    this.shopTitle.destroy();
+    this.shopBackground.destroy();
+    this.closeButton.destroy();
+    this.player.shopping = false;
+  },
+};
+
+module.exports = Shop;
+
+},{}],6:[function(require,module,exports){
 var Trash = require('../objects/trash.js');
 
 function TrashSpawner(game, player, trashGroup) {
@@ -161,9 +272,11 @@ function TrashSpawner(game, player, trashGroup) {
 
 TrashSpawner.prototype = {
   SPRITES: [
-    '',
-    '',
+    'trash-hamburger',
+    'trash-pipe',
+    'trash-cash'
   ],
+
   preload: function() {
 
   },
@@ -183,20 +296,33 @@ TrashSpawner.prototype = {
 
   createTrash: function() {
     var y = Math.floor((Math.random() * 25) + this.y);
-    var trash = new Trash(this.game, this.player).create(this.x, y);
+    var trash = new Trash(this.game, this.player, this.getRandomTrash()).create(this.x, y);
     this.trashGroup.add(trash);
+  },
+
+  getRandomTrash: function() {
+    var randomSprite = this.game.rnd.integerInRange(0, this.SPRITES.length - 1);
+    return this.SPRITES[randomSprite];
   }
 };
 
 module.exports = TrashSpawner;
 
-},{"../objects/trash.js":6}],6:[function(require,module,exports){
-function Trash(game, player) {
+},{"../objects/trash.js":7}],7:[function(require,module,exports){
+function Trash(game, player, trashType) {
   this.game = game;
   this.sprite = null;
   this.pointValue = 10;
-  this.damageAmount = 10;
+  this.cashAmount = 0;
+  this.healAmount = 2;
+  if (trashType === 'trash-battery') {
+    this.healAmount = 20;
+  } else if (trashType ==='trash-cash') {
+    this.cashAmount = 1;
+    this.healAmount = 0;
+  }
   this.player = player;
+  this.trashType = trashType;
 }
 
 Trash.prototype = {
@@ -207,17 +333,14 @@ Trash.prototype = {
   create: function(x, y) {
     var y = Math.floor((Math.random() * 600) + 1)
 
-    this.sprite = this.game.add.sprite(850, y, 'trash');
-    this.sprite.scale.setTo(2);
+    this.sprite = this.game.add.sprite(850, y, this.trashType);
 
     this.game.physics.p2.enable(this.sprite);
     this.sprite.body.collideWorldBounds = false;
     this.sprite.object = this;
 
     var randomVelocity = (Math.random() * 800) + 100;
-    console.log(randomVelocity);
     this.sprite.body.velocity.x = -200;
-
 
     var rotation = Math.random() * 360;
     this.sprite.body.rotation = rotation;
@@ -243,7 +366,7 @@ Trash.prototype = {
     var distance = this.distanceTo(blackhole);
 
     if (distance < 300) {
-      this.sprite.scale.setTo(0.02 * distance/3);
+      this.sprite.scale.setTo(0.02 * distance/6);
     }
   },
 
@@ -256,7 +379,7 @@ Trash.prototype = {
 
 module.exports = Trash;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 
 'use strict';
 
@@ -266,6 +389,7 @@ function Boot() {
 Boot.prototype = {
   preload: function() {
     this.load.image('preloader', 'assets/preloader.gif');
+    this.game.add.text(0, 0, "fix", {font:"1px arcade-classic", fill:"#FFFFFF"});
   },
   create: function() {
     this.game.input.maxPointers = 1;
@@ -275,7 +399,7 @@ Boot.prototype = {
 
 module.exports = Boot;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 
 'use strict';
 function GameOver() {}
@@ -303,8 +427,7 @@ GameOver.prototype = {
 };
 module.exports = GameOver;
 
-},{}],9:[function(require,module,exports){
-
+},{}],10:[function(require,module,exports){
 'use strict';
 function Intro() {}
 
@@ -312,19 +435,16 @@ Intro.prototype = {
   preload: function () {
 
   },
-  create: function () {
-    // var style = { font: '15px Arial', fill: '#ffffff', align: 'center'};
-    // this.titleText = this.game.add.text(this.game.world.centerX, 400, 'Game Over!', style);
-    // this.titleText.anchor.setTo(0.5, 0.5);
 
+  create: function () {
     this.game.load.spritesheet('opening-text', 'assets/opening-text.png', 32, 32);
     this.openingText = this.game.add.sprite(130, 600, 'opening-text');
   },
+
   update: function () {
-    console.log(this.openingText.x);
     if (this.openingText.y > 7) {
       this.openingText.y -= 0.85;
-    } 
+    }
 
     if (this.game.input.activePointer.justPressed()) {
       this.game.state.start('play');
@@ -333,7 +453,7 @@ Intro.prototype = {
 };
 module.exports = Intro;
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 
 'use strict';
 function Menu() {}
@@ -365,12 +485,13 @@ Menu.prototype = {
 
 module.exports = Menu;
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
   var BlackHole = require('../objects/black-hole.js');
   var Trash = require('../objects/trash.js');
   var Player = require('../objects/player.js');
   var Hud = require('../objects/hud.js');
   var TrashSpawner = require('../objects/trash-spawner.js');
+  var Shop = require('../objects/shop.js');
 
   'use strict';
   function Play() {}
@@ -410,9 +531,19 @@ module.exports = Menu;
       this.game.input.onDown.add(this.createBlackHole, this);
 
       this.hud = new Hud(this.game, this.player).create();
+
+      this.playMusic = this.game.add.audio('play');
+      this.playMusic.play();
+
+      this.trashHitSound = this.game.add.audio('trash-hit');
+      this.siren = this.game.add.audio('siren');
+      this.coinSound = this.game.add.audio('coin');
+
+      this.timer.loop(30000, this.shopAlert, this);
     },
 
     update: function() {
+      this.player.sprite.bringToTop();
       this.starfield.tilePosition.x -= 1;
       this.starfield2.tilePosition.x -= 1.5;
       this.trash.forEachAlive(this.moveTrash, this);
@@ -424,6 +555,23 @@ module.exports = Menu;
       this.trashSpawner.update();
 
       if (typeof this.blackhole !== 'undefined') { this.blackhole.object.update(); }
+    },
+
+    shopAlert: function() {
+      var style = { font: "40px arcade-classic", fill: "#FF0000", align: "center" };
+      this.powerText = this.game.add.text(400, 300, "SHOP AVAILABLE", style);
+      this.powerText.anchor.setTo(0.5);
+      this.game.time.events.repeat(500, 11, this.flashShopText, this);
+
+      this.hud.createShopButton();
+    },
+
+    flashShopText: function() {
+      if (this.powerText.text === " ") {
+        this.powerText.text = "SHOP AVAILABLE";
+      } else {
+        this.powerText.text = " ";
+      }
     },
 
     updateTrash: function(trash) {
@@ -439,7 +587,7 @@ module.exports = Menu;
     },
 
     createTrash: function() {
-      var trash = new Trash(this.game, this.player).create();
+      var trash = new Trash(this.game, this.player, this.trashSpawner.getRandomTrash()).create();
 
       trash.body.setCollisionGroup(this.trashCollisionGroup);
       trash.body.collides(this.blackholeCollisionGroup);
@@ -458,7 +606,7 @@ module.exports = Menu;
     },
 
     moveTrash: function(trash) {
-      if (typeof this.blackhole !== 'undefined') {
+      if (typeof this.blackhole !== 'undefined' && this.blackhole.alive) {
         trash.object.accelerateTo(this.blackhole, 30);
       }
     },
@@ -472,25 +620,38 @@ module.exports = Menu;
         this.blackhole.destroy();
       }
 
-      this.blackhole = new BlackHole(this.game).create();
+      if (this.player.shopping === false) {
+        this.blackhole = new BlackHole(this.game).create();
 
-      this.blackhole.body.setCollisionGroup(this.blackholeCollisionGroup);
-      this.blackhole.body.collides(this.trashCollisionGroup, this.consumeTrash, this);
+        this.blackhole.body.setCollisionGroup(this.blackholeCollisionGroup);
+        this.blackhole.body.collides(this.trashCollisionGroup, this.consumeTrash, this);
 
-      this.blackholes.add(this.blackhole);
+        this.blackholes.add(this.blackhole);
 
-      this.player.reload();
+        this.player.reload();
+      }
     },
+
+    sirenPlaying: false,
 
     consumeTrash: function(body1, body2) {
       // Possible bug: This seems to get called twice sometimes, so don't want
       // it destroying something that's null.
       if (body2.sprite) {
         if (body2.sprite.object.player.power) {
-          body2.sprite.object.player.power += 2;
+          body2.sprite.object.player.power += body2.sprite.object.healAmount;
+          body2.sprite.object.player.cash += body2.sprite.object.cashAmount;
+          console.log(body2.sprite.object.cashAmount);
+          if(body2.sprite.object.cashAmount > 0) {
+            this.coinSound.volume = 0.2;
+            this.coinSound.play();
+          }
         } else {
           body2.sprite.object.player.power = 100;
         }
+
+        this.trashHitSound.volume = 0.2;
+        this.trashHitSound.play();
         body2.sprite.destroy();
       }
     }
@@ -498,7 +659,7 @@ module.exports = Menu;
 
   module.exports = Play;
 
-},{"../objects/black-hole.js":2,"../objects/hud.js":3,"../objects/player.js":4,"../objects/trash-spawner.js":5,"../objects/trash.js":6}],12:[function(require,module,exports){
+},{"../objects/black-hole.js":2,"../objects/hud.js":3,"../objects/player.js":4,"../objects/shop.js":5,"../objects/trash-spawner.js":6,"../objects/trash.js":7}],13:[function(require,module,exports){
 
 'use strict';
 function Preload() {
@@ -515,12 +676,30 @@ Preload.prototype = {
     this.load.setPreloadSprite(this.asset);
 
     this.load.spritesheet('blackhole', 'assets/blackhole.png', 64, 64, 4);
-    this.load.image('trash', 'assets/trash/space_pipe.png');
-    this.load.image('battery', 'assets/battery.png');
+
+    this.load.image('trash-pipe', 'assets/trash/space_pipe.png');
+    this.load.image('trash-battery', 'assets/battery.png');
+    this.load.image('trash-hamburger', 'assets/trash/hamburger.png');
+    this.load.image('trash-cash', 'assets/trash/coin.png');
+
     this.load.image('opening-text', 'assets/opening-text.png');
     this.game.load.image('starfield', 'assets/space_background-01.png');
     this.game.load.spritesheet('crosshair', 'assets/crosshair.png', 32, 32, 20);
     this.game.load.image('power', 'assets/power_bar_battery.png');
+
+    this.game.load.audio('blackhole', 'assets/sounds/blackhole.ogg');
+    this.game.load.audio('play', 'assets/sounds/play.ogg');
+    this.game.load.audio('trash-hit', 'assets/sounds/hit3.wav');
+    this.game.load.audio('siren', 'assets/sounds/siren.mp3');
+    this.game.load.audio('coin', 'assets/sounds/coin.wav');
+    this.game.load.audio('reload', 'assets/sounds/reload.wav');
+    this.game.load.audio('intro', 'assets/sounds/intro.ogg');
+
+
+    this.game.load.image('shop', 'assets/shop.png');
+    this.game.load.spritesheet('black-button', 'assets/black_button.png', 64, 64);
+    this.game.load.spritesheet('close-button', 'assets/closebutton.png', 64, 64);
+    this.game.load.spritesheet('green-button', 'assets/green_button.png', 64, 64);
   },
   create: function() {
     this.asset.cropEnabled = false;

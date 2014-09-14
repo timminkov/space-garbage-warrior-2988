@@ -9,9 +9,11 @@ function TrashSpawner(game, player, trashGroup) {
 
 TrashSpawner.prototype = {
   SPRITES: [
-    '',
-    '',
+    'trash-hamburger',
+    'trash-pipe',
+    'trash-cash'
   ],
+
   preload: function() {
 
   },
@@ -31,8 +33,13 @@ TrashSpawner.prototype = {
 
   createTrash: function() {
     var y = Math.floor((Math.random() * 25) + this.y);
-    var trash = new Trash(this.game, this.player).create(this.x, y);
+    var trash = new Trash(this.game, this.player, this.getRandomTrash()).create(this.x, y);
     this.trashGroup.add(trash);
+  },
+
+  getRandomTrash: function() {
+    var randomSprite = this.game.rnd.integerInRange(0, this.SPRITES.length - 1);
+    return this.SPRITES[randomSprite];
   }
 };
 
