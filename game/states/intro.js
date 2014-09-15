@@ -8,7 +8,9 @@ Intro.prototype = {
 
   create: function () {
     this.game.load.spritesheet('opening-text', 'assets/opening-text.png', 32, 32);
-    this.openingText = this.game.add.sprite(130, 600, 'opening-text');
+    this.openingText = this.game.add.sprite(0, 600, 'opening-text');
+    this.sound = this.game.add.audio('intro', 1, true);
+    this.sound.play();
   },
 
   update: function () {
@@ -17,7 +19,8 @@ Intro.prototype = {
     }
 
     if (this.game.input.activePointer.justPressed()) {
-      this.game.state.start('play');
+      this.sound.stop();
+      this.game.state.start('menu');
     }
   }
 };

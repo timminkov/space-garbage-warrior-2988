@@ -12,7 +12,6 @@ BlackHole.prototype = {
     this.sprite = this.game.add.sprite(this.game.input.activePointer.worldX, this.game.input.activePointer.worldY, 'blackhole');
     this.sprite.scale.setTo(0.2);
 
-
     this.sprite.animations.add('pulse');
     this.sprite.animations.play('pulse', 12, true);
 
@@ -38,6 +37,8 @@ BlackHole.prototype = {
 
     this.sprite.body.velocity.y = 0;
     this.sprite.body.velocity.x = 0;
+    this.sprite.body.reset(this.sprite.x, this.sprite.y);
+
 
     if ((this.game.time.elapsedSecondsSince(this.timeCreated)) > 5) {
       this.sprite.scale.x -= 0.05;

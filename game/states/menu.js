@@ -6,22 +6,26 @@ Menu.prototype = {
   preload: function() {
 
   },
+
   create: function() {
-    var style = { font: '65px Arial', fill: '#ffffff', align: 'center'};
-    this.sprite = this.game.add.sprite(this.game.world.centerX, 138, 'yeoman');
-    this.sprite.anchor.setTo(0.5, 0.5);
+    this.starfield = this.game.add.tileSprite(0, 0, 3200, 2400, 'starfield');
+    this.starfield2 = this.game.add.tileSprite(-400, 0, 3200, 2400, 'starfield');
 
-    this.titleText = this.game.add.text(this.game.world.centerX, 300, '\'Allo, \'Allo!', style);
-    this.titleText.anchor.setTo(0.5, 0.5);
+    var sprite = this.game.add.sprite(0, 0, 'title');
+    sprite.alpha = 0;
 
-    this.instructionsText = this.game.add.text(this.game.world.centerX, 400, 'Click anywhere to play "Click The Yeoman Logo"', { font: '16px Arial', fill: '#ffffff', align: 'center'});
-    this.instructionsText.anchor.setTo(0.5, 0.5);
+    this.game.add.tween(sprite).to( { alpha: 1 }, 2000, Phaser.Easing.Linear.None, true, 0, 0);
+    this.sound = this.game.add.audio('menu');
+    this.sound.play();
 
-    this.sprite.angle = -20;
-    this.game.add.tween(this.sprite).to({angle: 20}, 1000, Phaser.Easing.Linear.NONE, true, 0, 1000, true);
   },
+
   update: function() {
+    this.starfield.tilePosition.y -= 0.1;
+    this.starfield2.tilePosition.y -= 0.15;
+
     if(this.game.input.activePointer.justPressed()) {
+      this.sound.stop();
       this.game.state.start('play');
     }
   }
