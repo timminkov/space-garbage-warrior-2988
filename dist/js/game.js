@@ -31,7 +31,6 @@ BlackHole.prototype = {
     this.sprite = this.game.add.sprite(this.game.input.activePointer.worldX, this.game.input.activePointer.worldY, 'blackhole');
     this.sprite.scale.setTo(0.2);
 
-
     this.sprite.animations.add('pulse');
     this.sprite.animations.play('pulse', 12, true);
 
@@ -57,6 +56,8 @@ BlackHole.prototype = {
 
     this.sprite.body.velocity.y = 0;
     this.sprite.body.velocity.x = 0;
+    this.sprite.body.reset(this.sprite.x, this.sprite.y);
+
 
     if ((this.game.time.elapsedSecondsSince(this.timeCreated)) > 5) {
       this.sprite.scale.x -= 0.05;
@@ -156,8 +157,8 @@ Player.prototype = {
     this.sprite = this.game.add.sprite(this.game.input.activePointer.worldX - 32, this.game.input.activePointer.worldY - 32, 'crosshair');
     this.sprite.animations.add('pulse', [1,2,3], 4, true);
 
-    var reloadAnimation = this.sprite.animations.add('reload', [4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19], this.reloadSpeed, false);
-    reloadAnimation.onComplete.add(this.pulseLoaded, this);
+    this.reloadAnimation = this.sprite.animations.add('reload', [4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19], this.reloadSpeed, false);
+    this.reloadAnimation.onComplete.add(this.pulseLoaded, this);
 
     this.sprite.animations.play('pulse');
 
@@ -167,7 +168,7 @@ Player.prototype = {
     this.siren.volume = 0.5;
 
     this.game.time.events.loop(Phaser.Timer.SECOND, function() {
-     this.power -= 1;
+     this.power -= 2;
       if (this.power <= 10) {
         if (this.sirenPlaying === false) {
           this.siren.play();
@@ -197,6 +198,10 @@ Player.prototype = {
   pulseLoaded: function(sprite, animation) {
     this.reloadSound.play();
     sprite.animations.play('pulse');
+  },
+
+  setReloadSpeed: function(speed) {
+    this.reloadAnimation.speed = speed;
   },
 };
 
@@ -232,6 +237,8 @@ Shop.prototype = {
   createButtonsAndText: function() {
     if (this.player.hasReloadUpgrade === false) {
       this.reloadButton = this.game.add.button(226, 330, 'black-button', this.buyReloadUpgrade, this, 0, 1, 2, 1);
+      var reloadTextStyle = { font: "20px arcade-classic", fill: "#000000", align: "center" };
+      this.reloadText = this.game.add.text(300, 350, "Upgrade reload speed (50)", reloadTextStyle);
     }
     var style = { font: "40px arcade-classic", fill: "#FF0000", align: "center" };
     this.shopTitle = this.game.add.text(350, 160, "S  H  O  P", style);
@@ -241,10 +248,12 @@ Shop.prototype = {
   },
 
   buyReloadUpgrade: function() {
+    this.reloadText.destroy();
+    this.reloadButton.destroy();
     if (this.player.cash >= 50) {
       this.player.hasReloadUpgrade = true;
       this.player.cash -= 50;
-      this.reloadSpeed = 4;
+      this.player.setReloadSpeed(4);
       this.button.kill();
     }
   },
@@ -254,6 +263,7 @@ Shop.prototype = {
     this.shopTitle.destroy();
     this.shopBackground.destroy();
     this.closeButton.destroy();
+    this.reloadText.destroy();
     this.player.shopping = false;
   },
 };
@@ -408,17 +418,13 @@ GameOver.prototype = {
   preload: function () {
 
   },
+
   create: function () {
-    var style = { font: '65px Arial', fill: '#ffffff', align: 'center'};
-    this.titleText = this.game.add.text(this.game.world.centerX,100, 'Game Over!', style);
-    this.titleText.anchor.setTo(0.5, 0.5);
-
-    this.congratsText = this.game.add.text(this.game.world.centerX, 200, 'You Win!', { font: '32px Arial', fill: '#ffffff', align: 'center'});
-    this.congratsText.anchor.setTo(0.5, 0.5);
-
-    this.instructionText = this.game.add.text(this.game.world.centerX, 300, 'Click To Play Again', { font: '16px Arial', fill: '#ffffff', align: 'center'});
-    this.instructionText.anchor.setTo(0.5, 0.5);
+    var style2 = { font: "100px arcade-classic", fill: "#790091", align: "center" };
+    this.powerText = this.game.add.text(400, 300, "GAME OVER", style2);
+    this.powerText.anchor.setTo(0.5);
   },
+
   update: function () {
     if(this.game.input.activePointer.justPressed()) {
       this.game.state.start('intro');
@@ -438,7 +444,9 @@ Intro.prototype = {
 
   create: function () {
     this.game.load.spritesheet('opening-text', 'assets/opening-text.png', 32, 32);
-    this.openingText = this.game.add.sprite(130, 600, 'opening-text');
+    this.openingText = this.game.add.sprite(0, 600, 'opening-text');
+    this.sound = this.game.add.audio('intro', 1, true);
+    this.sound.play();
   },
 
   update: function () {
@@ -447,7 +455,8 @@ Intro.prototype = {
     }
 
     if (this.game.input.activePointer.justPressed()) {
-      this.game.state.start('play');
+      this.sound.stop();
+      this.game.state.start('menu');
     }
   }
 };
@@ -462,22 +471,26 @@ Menu.prototype = {
   preload: function() {
 
   },
+
   create: function() {
-    var style = { font: '65px Arial', fill: '#ffffff', align: 'center'};
-    this.sprite = this.game.add.sprite(this.game.world.centerX, 138, 'yeoman');
-    this.sprite.anchor.setTo(0.5, 0.5);
+    this.starfield = this.game.add.tileSprite(0, 0, 3200, 2400, 'starfield');
+    this.starfield2 = this.game.add.tileSprite(-400, 0, 3200, 2400, 'starfield');
 
-    this.titleText = this.game.add.text(this.game.world.centerX, 300, '\'Allo, \'Allo!', style);
-    this.titleText.anchor.setTo(0.5, 0.5);
+    var sprite = this.game.add.sprite(0, 0, 'title');
+    sprite.alpha = 0;
 
-    this.instructionsText = this.game.add.text(this.game.world.centerX, 400, 'Click anywhere to play "Click The Yeoman Logo"', { font: '16px Arial', fill: '#ffffff', align: 'center'});
-    this.instructionsText.anchor.setTo(0.5, 0.5);
+    this.game.add.tween(sprite).to( { alpha: 1 }, 2000, Phaser.Easing.Linear.None, true, 0, 0);
+    this.sound = this.game.add.audio('menu');
+    this.sound.play();
 
-    this.sprite.angle = -20;
-    this.game.add.tween(this.sprite).to({angle: 20}, 1000, Phaser.Easing.Linear.NONE, true, 0, 1000, true);
   },
+
   update: function() {
+    this.starfield.tilePosition.y -= 0.1;
+    this.starfield2.tilePosition.y -= 0.15;
+
     if(this.game.input.activePointer.justPressed()) {
+      this.sound.stop();
       this.game.state.start('play');
     }
   }
@@ -543,6 +556,10 @@ module.exports = Menu;
     },
 
     update: function() {
+      if (this.player.power <= 0) {
+        this.playMusic.stop();
+        this.game.state.start('gameover');
+      }
       this.player.sprite.bringToTop();
       this.starfield.tilePosition.x -= 1;
       this.starfield2.tilePosition.x -= 1.5;
@@ -686,6 +703,7 @@ Preload.prototype = {
     this.game.load.image('starfield', 'assets/space_background-01.png');
     this.game.load.spritesheet('crosshair', 'assets/crosshair.png', 32, 32, 20);
     this.game.load.image('power', 'assets/power_bar_battery.png');
+    this.game.load.image('title', 'assets/title.png');
 
     this.game.load.audio('blackhole', 'assets/sounds/blackhole.ogg');
     this.game.load.audio('play', 'assets/sounds/play.ogg');
@@ -694,6 +712,7 @@ Preload.prototype = {
     this.game.load.audio('coin', 'assets/sounds/coin.wav');
     this.game.load.audio('reload', 'assets/sounds/reload.wav');
     this.game.load.audio('intro', 'assets/sounds/intro.ogg');
+    this.game.load.audio('menu', 'assets/sounds/playmenu2.ogg');
 
 
     this.game.load.image('shop', 'assets/shop.png');

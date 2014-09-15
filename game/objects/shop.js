@@ -27,6 +27,8 @@ Shop.prototype = {
   createButtonsAndText: function() {
     if (this.player.hasReloadUpgrade === false) {
       this.reloadButton = this.game.add.button(226, 330, 'black-button', this.buyReloadUpgrade, this, 0, 1, 2, 1);
+      var reloadTextStyle = { font: "20px arcade-classic", fill: "#000000", align: "center" };
+      this.reloadText = this.game.add.text(300, 350, "Upgrade reload speed (50)", reloadTextStyle);
     }
     var style = { font: "40px arcade-classic", fill: "#FF0000", align: "center" };
     this.shopTitle = this.game.add.text(350, 160, "S  H  O  P", style);
@@ -36,10 +38,12 @@ Shop.prototype = {
   },
 
   buyReloadUpgrade: function() {
+    this.reloadText.destroy();
+    this.reloadButton.destroy();
     if (this.player.cash >= 50) {
       this.player.hasReloadUpgrade = true;
       this.player.cash -= 50;
-      this.reloadSpeed = 4;
+      this.player.setReloadSpeed(4);
       this.button.kill();
     }
   },
@@ -49,6 +53,7 @@ Shop.prototype = {
     this.shopTitle.destroy();
     this.shopBackground.destroy();
     this.closeButton.destroy();
+    this.reloadText.destroy();
     this.player.shopping = false;
   },
 };

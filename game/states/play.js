@@ -55,6 +55,10 @@
     },
 
     update: function() {
+      if (this.player.power <= 0) {
+        this.playMusic.stop();
+        this.game.state.start('gameover');
+      }
       this.player.sprite.bringToTop();
       this.starfield.tilePosition.x -= 1;
       this.starfield2.tilePosition.x -= 1.5;

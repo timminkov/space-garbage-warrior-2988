@@ -24,6 +24,7 @@ Preload.prototype = {
     this.game.load.image('starfield', 'assets/space_background-01.png');
     this.game.load.spritesheet('crosshair', 'assets/crosshair.png', 32, 32, 20);
     this.game.load.image('power', 'assets/power_bar_battery.png');
+    this.game.load.image('title', 'assets/title.png');
 
     this.game.load.audio('blackhole', 'assets/sounds/blackhole.ogg');
     this.game.load.audio('play', 'assets/sounds/play.ogg');
@@ -32,6 +33,7 @@ Preload.prototype = {
     this.game.load.audio('coin', 'assets/sounds/coin.wav');
     this.game.load.audio('reload', 'assets/sounds/reload.wav');
     this.game.load.audio('intro', 'assets/sounds/intro.ogg');
+    this.game.load.audio('menu', 'assets/sounds/playmenu2.ogg');
 
 
     this.game.load.image('shop', 'assets/shop.png');
